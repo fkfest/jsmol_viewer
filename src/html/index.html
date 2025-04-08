@@ -209,6 +209,7 @@
         var homoOrbital = 0;
         var lumoOrbital = 0;
         var numOrbitals = 0;
+        var orbitals = [];
         
         function getOrbitalInfo() {
             try {
@@ -224,7 +225,7 @@
                 
                 // Parse each line to find orbitals and their occupancies
                 // Store them in order to properly identify HOMO/LUMO
-                let orbitals = [];
+                orbitals = [];
                 
                 for (let line of lines) {
                     let match = line.match(/mo\s+(\d+)\s+#\s+energy\s+([+-]?\d+\.?\d*)\s+occupancy\s+(\d+)/);
@@ -310,7 +311,12 @@
             const fragment = document.createDocumentFragment();
             for (let i = 1; i <= numOrbitals; i++) {
                 const div = document.createElement('div');
+                // Find orbital energy from the stored orbitals array
+                const orbital = orbitals.find(o => o.number === i);
                 let label = `Orbital ${i}`;
+                if (orbital) {
+                    label += ` (${orbital.energy.toFixed(3)})`;
+                }
                 if (i === homoOrbital) {
                     label += ' (HOMO)';
                     div.style.fontWeight = 'bold';
