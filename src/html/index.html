@@ -9,6 +9,19 @@
         #container { display: flex; }
         #viewer { flex: 1; min-height: 600px; }
         #controls { width: 200px; padding: 10px; }
+        #editor-panel {
+            width: 300px;
+            padding: 10px;
+            display: none;
+            border-left: 1px solid #ccc;
+        }
+        #xyz-editor {
+            width: 100%;
+            height: 400px;
+            font-family: monospace;
+            white-space: pre;
+            resize: vertical;
+        }
         #status { color: red; margin: 10px; }
         #orbitalControls {
             margin-top: 10px;
@@ -277,6 +290,73 @@
                 showOrbital(lumoOrbital);
             }
         }
+
+        function showXYZEditor() {
+            const editorPanel = document.getElementById('editor-panel');
+            editorPanel.style.display = 'block';
+            
+            try {
+                // Get atom data
+                const atomData = Jmol.evaluateVar(jmolApplet0, 'write("xyz")');
+                
+                // Parse the XYZ data to remove duplicate headers
+                const lines = atomData.split('\n');
+                
+                // Find the actual coordinates section (skip headers until coordinates)
+                let startIndex = 0;
+                for (let i = 0; i < lines.length; i++) {
+                    if (lines[i].match(/^\s*[A-Za-z]+\s+[-+]?[\d.]+\s+[-+]?[\d.]+\s+[-+]?[\d.]+/)) {
+                        startIndex = i;
+                        break;
+                    }
+                }
+                
+                // Count actual atoms
+                const coordinates = lines.slice(startIndex).filter(line => 
+                    line.trim().match(/^[A-Za-z]+\s+[-+]?[\d.]+\s+[-+]?[\d.]+\s+[-+]?[\d.]+/)
+                );
+                
+                // Get model name/title
+                const modelName = Jmol.evaluateVar(jmolApplet0, '_modelName') || 'Structure';
+                
+                // Format as proper XYZ file
+                const xyzData = `${coordinates.length}\n${modelName}\n${coordinates.join('\n')}`;
+                
+                document.getElementById('xyz-editor').value = xyzData;
+                document.getElementById('status').innerHTML = 'Structure loaded in editor';
+            } catch (err) {
+                document.getElementById('status').innerHTML = 'Error getting structure data: ' + err.message;
+                document.getElementById('xyz-editor').value = '';
+            }
+        }
+
+        function hideXYZEditor() {
+            document.getElementById('editor-panel').style.display = 'none';
+        }
+
+        function updateMolecule() {
+            const xyzData = document.getElementById('xyz-editor').value;
+            try {
+                Jmol.script(jmolApplet0, 'load inline "' + xyzData + '"');
+                document.getElementById('status').innerHTML = 'Structure updated successfully';
+            } catch (err) {
+                document.getElementById('status').innerHTML = 'Error updating structure: ' + err.message;
+            }
+        }
+
+        function saveXYZ() {
+            const xyzData = document.getElementById('xyz-editor').value;
+            const blob = new Blob([xyzData], { type: 'chemical/x-xyz' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'molecule.xyz';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
     </script>
 </head>
 <body>
@@ -315,7 +395,18 @@
                 <p>Use arrow keys ↑/↓ to navigate orbitals</p>
             </div>
             
+            <h3>XYZ Editor</h3>
+            <button onclick="showXYZEditor()">Edit XYZ</button>
+            
             <p>Or drag and drop any molecular structure file onto the viewer</p>
+        </div>
+        <div id="editor-panel">
+            <h3>XYZ Editor <button onclick="hideXYZEditor()">Close</button></h3>
+            <textarea id="xyz-editor" spellcheck="false"></textarea>
+            <div>
+                <button onclick="updateMolecule()">Update Structure</button>
+                <button onclick="saveXYZ()">Save XYZ File</button>
+            </div>
         </div>
     </div>
 </body>
