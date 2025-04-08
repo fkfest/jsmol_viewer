@@ -137,14 +137,18 @@
         
         function toggleOrbitalControls() {
             var orbitalControls = document.getElementById('orbitalControls');
-            if (orbitalControls.style.display === 'none') {
+            if (orbitalControls.style.display === 'none' || !orbitalControls.style.display) {
                 orbitalControls.style.display = 'block';
                 // For molden files, ensure orbitals are loaded
                 let fileName = Jmol.evaluateVar(jmolApplet0, '_modelFile.name');
                 if (fileName && fileName.toLowerCase().endsWith('.molden')) {
                     Jmol.script(jmolApplet0, 'mo fill nomesh;');
                 }
-                getOrbitalInfo();
+                // Initialize orbital visualization if not already visible
+                if (!orbitalsVisible) {
+                    Jmol.script(jmolApplet0, 'mo fill nomesh translucent 0.5');
+                    getOrbitalInfo();
+                }
             } else {
                 orbitalControls.style.display = 'none';
                 Jmol.script(jmolApplet0, 'mo delete');
