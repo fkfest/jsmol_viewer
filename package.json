@@ -38,7 +38,8 @@
       "target": ["AppImage", "deb", "rpm"],
       "icon": "build/icons/",
       "category": "Science",
-      "artifactName": "${productName}-${version}.${ext}"
+      "artifactName": "${productName}-${version}.${ext}",
+      "maintainer": "JSmol Team/Daniel Kats <jmol-users@lists.sourceforge.net>"
     },
     "nsis": {
       "oneClick": false,
@@ -47,7 +48,10 @@
       "createStartMenuShortcut": true
     }
   },
-  "author": "",
+  "author": {
+    "name": "JSmol Team/Daniel Kats",
+    "email": "jmol-users@lists.sourceforge.net"
+  },
   "license": "LGPL-2.1",
   "devDependencies": {
     "electron": "^28.0.0",
