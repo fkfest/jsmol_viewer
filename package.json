@@ -36,8 +36,9 @@
     },
     "linux": {
       "target": ["AppImage", "deb", "rpm"],
-      "icon": "build/icons",
-      "category": "Science"
+      "icon": "build/icons/",
+      "category": "Science",
+      "artifactName": "${productName}-${version}.${ext}"
     },
     "nsis": {
       "oneClick": false,

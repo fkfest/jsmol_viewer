@@ -22,6 +22,18 @@ jobs:
         with:
           node-version: 18
 
+      - name: Install system dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y inkscape imagemagick
+
+      - name: Generate icons
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          chmod +x build/generate-icons.sh
+          ./build/generate-icons.sh
+
       - name: Install Dependencies
         run: npm install
 
