@@ -133,10 +133,10 @@
         document.addEventListener('keydown', function(event) {
             if (orbitalsVisible) {
                 if (event.key === 'ArrowUp') {
-                    changeOrbital(1);
+                    changeOrbital(-1);
                     event.preventDefault();
                 } else if (event.key === 'ArrowDown') {
-                    changeOrbital(-1);
+                    changeOrbital(1);
                     event.preventDefault();
                 }
             }
