@@ -47,10 +47,33 @@
         }
         #status { color: red; margin: 10px; }
         #orbitalControls {
-            margin-top: 10px;
+            position: fixed;
+            width: 300px;
             padding: 10px;
-            border: 1px solid #ccc;
             display: none;
+            background: white;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 9999;
+            top: 100px;
+            left: 400px;
+            resize: both;
+            overflow: auto;
+            min-width: 200px;
+            min-height: 200px;
+        }
+        #orbital-header {
+            cursor: move;
+            padding: 10px;
+            background: #f0f0f0;
+            margin: -10px -10px 10px -10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ccc;
+        }
+        #orbital-header h3 {
+            margin: 0;
         }
         .orbital-nav {
             display: flex;
@@ -388,46 +411,56 @@
 
         // Make editor panel draggable
         function initDraggable() {
-            const editorPanel = document.getElementById('editor-panel');
-            const editorHeader = document.getElementById('editor-header');
-            let isDragging = false;
-            let currentX;
-            let currentY;
-            let initialX;
-            let initialY;
-            let xOffset = 0;
-            let yOffset = 0;
+            function makeDraggable(panel, header) {
+                let isDragging = false;
+                let currentX;
+                let currentY;
+                let initialX;
+                let initialY;
+                let xOffset = 0;
+                let yOffset = 0;
 
-            editorHeader.addEventListener('mousedown', dragStart);
-            document.addEventListener('mousemove', drag);
-            document.addEventListener('mouseup', dragEnd);
+                header.addEventListener('mousedown', dragStart);
+                document.addEventListener('mousemove', drag);
+                document.addEventListener('mouseup', dragEnd);
 
-            function dragStart(e) {
-                initialX = e.clientX - xOffset;
-                initialY = e.clientY - yOffset;
+                function dragStart(e) {
+                    initialX = e.clientX - xOffset;
+                    initialY = e.clientY - yOffset;
 
-                if (e.target === editorHeader) {
-                    isDragging = true;
+                    if (e.target === header) {
+                        isDragging = true;
+                    }
+                }
+
+                function drag(e) {
+                    if (isDragging) {
+                        e.preventDefault();
+                        currentX = e.clientX - initialX;
+                        currentY = e.clientY - initialY;
+                        xOffset = currentX;
+                        yOffset = currentY;
+
+                        panel.style.transform = `translate(${currentX}px, ${currentY}px)`;
+                    }
+                }
+
+                function dragEnd() {
+                    initialX = currentX;
+                    initialY = currentY;
+                    isDragging = false;
                 }
             }
 
-            function drag(e) {
-                if (isDragging) {
-                    e.preventDefault();
-                    currentX = e.clientX - initialX;
-                    currentY = e.clientY - initialY;
-                    xOffset = currentX;
-                    yOffset = currentY;
-
-                    editorPanel.style.transform = `translate(${currentX}px, ${currentY}px)`;
-                }
-            }
-
-            function dragEnd() {
-                initialX = currentX;
-                initialY = currentY;
-                isDragging = false;
-            }
+            // Make both panels draggable
+            makeDraggable(
+                document.getElementById('editor-panel'),
+                document.getElementById('editor-header')
+            );
+            makeDraggable(
+                document.getElementById('orbitalControls'),
+                document.getElementById('orbital-header')
+            );
         }
     </script>
 </head>
@@ -450,38 +483,38 @@
             <button onclick="Jmol.script(jmolApplet0, 'spacefill')">Spacefill</button>
             <button onclick="Jmol.script(jmolApplet0, 'cartoon')">Cartoon</button>
             <button onclick="Jmol.script(jmolApplet0, 'console')">Open Console</button>
+            <button onclick="showXYZEditor()">Edit XYZ</button>
             
             <h3>Orbital Visualization</h3>
             <button onclick="toggleOrbitalControls()">Show/Hide Orbitals</button>
-            <div id="orbitalControls">
-                <div class="homo-lumo-controls">
-                    <button onclick="showHOMO()">Show HOMO</button>
-                    <button onclick="showLUMO()">Show LUMO</button>
-                </div>
-                <div class="orbital-nav">
-                    <button onclick="changeOrbital(-1)">←</button>
-                    <span>Orbital: <span id="currentOrbital">1</span></span>
-                    <button onclick="changeOrbital(1)">→</button>
-                </div>
-                <div id="orbitalList"></div>
-                <p>Use arrow keys ↑/↓ to navigate orbitals</p>
-            </div>
-            
-            <h3>XYZ Editor</h3>
-            <button onclick="showXYZEditor()">Edit XYZ</button>
-            
-            <p>Or drag and drop any molecular structure file onto the viewer</p>
         </div>
-        <div id="editor-panel">
-            <div id="editor-header">
-                <h3>XYZ Editor</h3>
-                <button onclick="hideXYZEditor()">Close</button>
-            </div>
-            <textarea id="xyz-editor" spellcheck="false"></textarea>
-            <div>
-                <button onclick="updateMolecule()">Update Structure</button>
-                <button onclick="saveXYZ()">Save XYZ File</button>
-            </div>
+    </div>
+    <div id="orbitalControls">
+        <div id="orbital-header">
+            <h3>Orbital Controls</h3>
+            <button onclick="toggleOrbitalControls()">Close</button>
+        </div>
+        <div class="homo-lumo-controls">
+            <button onclick="showHOMO()">Show HOMO</button>
+            <button onclick="showLUMO()">Show LUMO</button>
+        </div>
+        <div class="orbital-nav">
+            <button onclick="changeOrbital(-1)">←</button>
+            <span>Orbital: <span id="currentOrbital">1</span></span>
+            <button onclick="changeOrbital(1)">→</button>
+        </div>
+        <div id="orbitalList"></div>
+        <p>Use arrow keys ↑/↓ to navigate orbitals</p>
+    </div>
+    <div id="editor-panel">
+        <div id="editor-header">
+            <h3>XYZ Editor</h3>
+            <button onclick="hideXYZEditor()">Close</button>
+        </div>
+        <textarea id="xyz-editor" spellcheck="false"></textarea>
+        <div>
+            <button onclick="updateMolecule()">Update Structure</button>
+            <button onclick="saveXYZ()">Save XYZ File</button>
         </div>
     </div>
 </body>
