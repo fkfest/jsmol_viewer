@@ -12,6 +12,10 @@ A desktop application for molecular visualization built with Electron and JSmol.
   - Interactive controls for rotation and zoom
   - Different visualization styles (wireframe, spacefill, cartoon)
   - Spin animation
+- Draggable XYZ structure editor
+  - Edit molecular coordinates directly
+  - Live preview of changes
+  - Save edited structures as XYZ files
 - Drag and drop file loading
 - Cross-platform support (Windows, macOS, Linux)
 
@@ -66,3 +70,19 @@ This project is licensed under LGPL-2.1.
 For more information about the underlying JSmol viewer:
 - [Jmol Documentation](http://jmol.sourceforge.net)
 - [JSmol Documentation](http://jsmol.sourceforge.net)
+
+## Using the XYZ Editor
+
+The application includes a draggable XYZ structure editor that allows you to:
+- View and edit molecular coordinates in XYZ format
+- Preview changes in real-time in the 3D viewer 
+- Save edited structures to XYZ files
+- Move the editor window anywhere on screen by dragging its header
+- Resize the editor window by dragging its bottom-right corner
+
+To use the editor:
+1. Load a molecular structure
+2. Click the "Edit XYZ" button
+3. Make changes to the coordinates in the editor
+4. Click "Update Structure" to see your changes
+5. Click "Save XYZ File" to save the current structure
