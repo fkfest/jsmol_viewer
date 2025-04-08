@@ -1,11 +1,14 @@
 {
   "name": "jsmol-electron",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "JSmol Molecular Viewer Desktop App",
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --win"
+    "build": "electron-builder -mwl",
+    "build:windows": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux"
   },
   "build": {
     "appId": "com.jsmol.viewer",
@@ -25,6 +28,16 @@
     "win": {
       "target": "nsis",
       "icon": "build/icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "build/icon.icns",
+      "category": "public.app-category.education"
+    },
+    "linux": {
+      "target": ["AppImage", "deb", "rpm"],
+      "icon": "build/icons",
+      "category": "Science"
     },
     "nsis": {
       "oneClick": false,
