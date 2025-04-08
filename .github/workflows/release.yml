@@ -26,6 +26,8 @@ jobs:
         run: npm install
 
       - name: Build Electron App
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
             npm run build:linux
