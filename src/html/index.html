@@ -471,6 +471,20 @@
             }
         }
 
+        function optimizeStructure() {
+            try {
+                Jmol.script(jmolApplet0, 'minimize');
+                document.getElementById('status').innerHTML = 'Structure optimization started';
+                // Update the XYZ editor after a short delay to allow optimization to complete
+                setTimeout(() => {
+                    showXYZEditor();
+                    document.getElementById('status').innerHTML = 'Structure optimization completed';
+                }, 1000);
+            } catch (err) {
+                document.getElementById('status').innerHTML = 'Error optimizing structure: ' + err.message;
+            }
+        }
+
         function toggleAtomSelection(row) {
             row.classList.toggle('selected');
             const atomIndex = parseInt(row.dataset.atomIndex);
@@ -613,8 +627,10 @@
         <textarea id="xyz-content-edit" class="xyz-editor"></textarea>
         <div style="margin-top: 10px;">
             <button onclick="updateStructure()">Update Structure</button>
+            <button onclick="optimizeStructure()">Optimize Structure</button>
             <button onclick="saveXYZ()">Save XYZ File</button>
         </div>
     </div>
 </body>
 </html>
+``` 
