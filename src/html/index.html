@@ -34,10 +34,24 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid #ccc;
+            user-select: none;
         }
-        #editor-header h3 {
-            margin: 0;
+        .xyz-row {
+            display: flex;
+            margin: 2px 0;
         }
+        .xyz-row:hover {
+            background-color: #f0f0f0;
+            cursor: pointer;
+        }
+        .xyz-row.selected {
+            background-color: #e0e0ff;
+        }
+        .xyz-cell {
+            padding: 2px 5px;
+        }
+        .atom-symbol { width: 40px; }
+        .coordinate { width: 80px; }
         #xyz-editor {
             width: 100%;
             height: 400px;
@@ -101,6 +115,18 @@
         .homo-lumo-controls {
             display: flex;
             gap: 5px;
+            margin: 10px 0;
+        }
+        .xyz-content-edit {
+            display: none;
+        }
+        textarea.xyz-editor {
+            width: 100%;
+            min-height: 200px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+        .mode-buttons {
             margin: 10px 0;
         }
     </style>
@@ -358,51 +384,97 @@
                 
                 // Parse the XYZ data to remove duplicate headers
                 const lines = atomData.split('\n');
+                const atomCount = parseInt(lines[0]);
+                const xyzContent = document.getElementById('xyz-content');
+                xyzContent.innerHTML = '';
                 
-                // Find the actual coordinates section (skip headers until coordinates)
-                let startIndex = 0;
-                for (let i = 0; i < lines.length; i++) {
-                    if (lines[i].match(/^\s*[A-Za-z]+\s+[-+]?[\d.]+\s+[-+]?[\d.]+\s+[-+]?[\d.]+/)) {
-                        startIndex = i;
-                        break;
-                    }
+                // Create table header
+                const headerRow = document.createElement('div');
+                headerRow.className = 'xyz-row header';
+                headerRow.innerHTML = `
+                    <div class="xyz-cell atom-symbol">Atom</div>
+                    <div class="xyz-cell coordinate">X</div>
+                    <div class="xyz-cell coordinate">Y</div>
+                    <div class="xyz-cell coordinate">Z</div>
+                `;
+                xyzContent.appendChild(headerRow);
+                
+                // Add atom rows
+                for (let i = 2; i < atomCount + 2; i++) {
+                    const [atom, x, y, z] = lines[i].trim().split(/\s+/);
+                    const row = document.createElement('div');
+                    row.className = 'xyz-row';
+                    row.innerHTML = `
+                        <div class="xyz-cell atom-symbol">${atom}</div>
+                        <div class="xyz-cell coordinate">${x}</div>
+                        <div class="xyz-cell coordinate">${y}</div>
+                        <div class="xyz-cell coordinate">${z}</div>
+                    `;
+                    row.dataset.atomIndex = i - 2;
+                    row.onclick = function() {
+                        toggleAtomSelection(this);
+                    };
+                    xyzContent.appendChild(row);
                 }
                 
-                // Count actual atoms
-                const coordinates = lines.slice(startIndex).filter(line => 
-                    line.trim().match(/^[A-Za-z]+\s+[-+]?[\d.]+\s+[-+]?[\d.]+\s+[-+]?[\d.]+/)
-                );
-                
-                // Get model name/title
-                const modelName = Jmol.evaluateVar(jmolApplet0, '_modelName') || 'Structure';
-                
-                // Format as proper XYZ file
-                const xyzData = `${coordinates.length}\n${modelName}\n${coordinates.join('\n')}`;
-                
-                document.getElementById('xyz-editor').value = xyzData;
-                document.getElementById('status').innerHTML = 'Structure loaded in editor';
+                // Update textarea content
+                document.getElementById('xyz-content-edit').value = atomData;
             } catch (err) {
                 document.getElementById('status').innerHTML = 'Error getting structure data: ' + err.message;
-                document.getElementById('xyz-editor').value = '';
             }
         }
 
-        function hideXYZEditor() {
-            document.getElementById('editor-panel').style.display = 'none';
+        function toggleEditMode() {
+            const selectionView = document.getElementById('xyz-content');
+            const editView = document.getElementById('xyz-content-edit');
+            const editButton = document.getElementById('toggle-edit-mode');
+            
+            if (selectionView.style.display !== 'none') {
+                // Switch to edit mode
+                selectionView.style.display = 'none';
+                editView.style.display = 'block';
+                editButton.textContent = 'Switch to Selection Mode';
+                // Clear any existing selections
+                Jmol.script(jmolApplet0, 'select none; halos off');
+            } else {
+                // Switch to selection mode
+                selectionView.style.display = 'block';
+                editView.style.display = 'none';
+                editButton.textContent = 'Switch to Edit Mode';
+            }
         }
 
-        function updateMolecule() {
-            const xyzData = document.getElementById('xyz-editor').value;
+        function updateStructure() {
+            const editView = document.getElementById('xyz-content-edit');
             try {
-                Jmol.script(jmolApplet0, 'load inline "' + xyzData + '"');
+                Jmol.script(jmolApplet0, 'load inline "' + editView.value + '"');
                 document.getElementById('status').innerHTML = 'Structure updated successfully';
+                showXYZEditor(); // Refresh the selection view with updated data
             } catch (err) {
                 document.getElementById('status').innerHTML = 'Error updating structure: ' + err.message;
             }
         }
 
+        function toggleAtomSelection(row) {
+            row.classList.toggle('selected');
+            const atomIndex = parseInt(row.dataset.atomIndex);
+            const isSelected = row.classList.contains('selected');
+            
+            // Update selection in JSmol
+            const script = isSelected ? 
+                `select atomno=${atomIndex + 1}; halos on` :
+                `select atomno=${atomIndex + 1}; halos off`;
+            Jmol.script(jmolApplet0, script);
+        }
+
+        function hideXYZEditor() {
+            document.getElementById('editor-panel').style.display = 'none';
+            // Clear selections when closing editor
+            Jmol.script(jmolApplet0, 'select none; halos off');
+        }
+
         function saveXYZ() {
-            const xyzData = document.getElementById('xyz-editor').value;
+            const xyzData = document.getElementById('xyz-content-edit').value;
             const blob = new Blob([xyzData], { type: 'chemical/x-xyz' });
             const url = URL.createObjectURL(blob);
             
@@ -517,9 +589,13 @@
             <h3>XYZ Editor</h3>
             <button onclick="hideXYZEditor()">Close</button>
         </div>
-        <textarea id="xyz-editor" spellcheck="false"></textarea>
-        <div>
-            <button onclick="updateMolecule()">Update Structure</button>
+        <div class="mode-buttons">
+            <button id="toggle-edit-mode" onclick="toggleEditMode()">Switch to Edit Mode</button>
+        </div>
+        <div id="xyz-content"></div>
+        <textarea id="xyz-content-edit" class="xyz-editor"></textarea>
+        <div style="margin-top: 10px;">
+            <button onclick="updateStructure()">Update Structure</button>
             <button onclick="saveXYZ()">Save XYZ File</button>
         </div>
     </div>
