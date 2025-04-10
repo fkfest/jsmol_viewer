@@ -163,6 +163,41 @@
             script: "set debugScript off; set antialiasDisplay; set zoomLarge false;"
         };
 
+        // Function to export the current view as an image
+        function exportImage() {
+            try {
+                // Get the image data using the correct JSmol API method
+                var imageData = Jmol.getPropertyAsString(jmolApplet0, "image");
+                
+                // Convert the raw image data to a proper data URL
+                if (!imageData.startsWith('data:')) {
+                    imageData = 'data:image/png;base64,' + imageData;
+                }
+                
+                // Create a temporary link element
+                var link = document.createElement('a');
+                link.href = imageData;
+                link.download = 'molecule.png';
+                
+                // This is required for Firefox
+                link.target = '_blank';
+                
+                // Append to body, click, and remove
+                document.body.appendChild(link);
+                link.click();
+                
+                // Small delay before removing the link to ensure the download starts
+                setTimeout(() => {
+                    document.body.removeChild(link);
+                }, 100);
+                
+                document.getElementById('status').innerHTML = 'Image exported successfully';
+            } catch (err) {
+                document.getElementById('status').innerHTML = 'Error exporting image: ' + err.message;
+                console.error('Export error:', err);
+            }
+        }
+
         // Add variable to store XYZ data
         var lastXYZData = null;
 
@@ -670,6 +705,7 @@
             </div>
             <button onclick="Jmol.script(jmolApplet0, 'console')">Open Console</button>
             <button onclick="showXYZEditor()">Edit XYZ</button>
+            <button onclick="exportImage()">Export Image</button>
             
             <h3>Orbital Visualization</h3>
             <button onclick="toggleOrbitalControls()">Show/Hide Orbitals</button>
