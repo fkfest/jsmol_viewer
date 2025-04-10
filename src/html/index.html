@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <title>JSmol Molecular Viewer</title>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script type="text/javascript" src="../../jsmol/jquery/jquery.min.js"></script>
     <script type="text/javascript" src="../../jsmol/JSmol.min.js"></script>
     <style>
@@ -34,6 +35,7 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid #ccc;
+            -webkit-user-select: none;
             user-select: none;
         }
         .xyz-row {
@@ -129,9 +131,21 @@
         .mode-buttons {
             margin: 10px 0;
         }
+        .action-buttons {
+            margin-top: 10px;
+        }
+        
+        /* Add zoom container styles */
+        body {
+            transform-origin: center top;
+            transition: transform 0.1s ease;
+        }
     </style>
     <script type="text/javascript">
         var jmolApplet0;
+        var isSpinning = false;
+        var displayMode = 'default'; // Track current display mode
+        var currentZoom = 100; // Track zoom level
         var Info = {
             width: 800,
             height: 600,
@@ -157,6 +171,49 @@
             $("#viewer").html(Jmol.getAppletHtml("jmolApplet0", Info));
             initDraggable();
         });
+
+        // Add toggle spin function
+        function toggleSpin() {
+            isSpinning = !isSpinning;
+            Jmol.script(jmolApplet0, isSpinning ? 'spin on' : 'spin off');
+            document.getElementById('spinButton').textContent = isSpinning ? 'Stop' : 'Spin';
+        }
+
+        // Add toggle display mode function
+        function toggleDisplayMode() {
+            switch(displayMode) {
+                case 'default':
+                    Jmol.script(jmolApplet0, 'wireframe');
+                    displayMode = 'wireframe';
+                    document.getElementById('displayButton').textContent = 'Display: Wireframe';
+                    break;
+                case 'wireframe':
+                    Jmol.script(jmolApplet0, 'spacefill');
+                    displayMode = 'spacefill';
+                    document.getElementById('displayButton').textContent = 'Display: Spacefill';
+                    break;
+                case 'spacefill':
+                    Jmol.script(jmolApplet0, 'wireframe off; spacefill 23%; wireframe 0.15');  // Reset to default ball and stick
+                    displayMode = 'default';
+                    document.getElementById('displayButton').textContent = 'Display: Ball & Stick';
+                    break;
+            }
+        }
+
+        // Add zoom control functions
+        function adjustZoom(direction) {
+            if (direction === '+' && currentZoom < 200) {
+                currentZoom += 20;
+            } else if (direction === '-' && currentZoom > 40) {
+                currentZoom -= 20;
+            }
+            Jmol.script(jmolApplet0, 'zoom ' + currentZoom);
+        }
+
+        function resetZoom() {
+            currentZoom = 100;
+            Jmol.script(jmolApplet0, 'zoom 100');
+        }
 
         function handleFileSelect(evt) {
             var files = evt.target.files;
@@ -571,6 +628,23 @@
                 document.getElementById('orbital-header')
             );
         }
+        
+        // Add page zoom functionality
+        let pageZoom = 100;
+        
+        document.addEventListener('wheel', function(e) {
+            if (e.ctrlKey) {
+                e.preventDefault();  // Prevent default browser zoom
+                
+                const delta = e.deltaY < 0 ? 10 : -10;
+                pageZoom = Math.min(Math.max(40, pageZoom + delta), 200);  // Limit zoom between 40% and 200%
+                
+                document.body.style.transform = `scale(${pageZoom / 100})`;
+                
+                // Update status to show current zoom level
+                document.getElementById('status').innerHTML = `Page zoom: ${pageZoom}%`;
+            }
+        }, { passive: false });  // Required for preventDefault to work
     </script>
 </head>
 <body>
@@ -578,19 +652,22 @@
         <div id="viewer"></div>
         <div id="controls">
             <h3>Load Structure</h3>
-            <input type="file" id="structureFile" accept=".xyz,.pdb,.mol,.cif,.molden" onChange="handleFileSelect(event)">
+            <label for="structureFile">Choose molecular structure file:</label>
+            <input type="file" id="structureFile" accept=".xyz,.pdb,.mol,.cif,.molden" onChange="handleFileSelect(event)" title="Select a molecular structure file">
             <div id="status"></div>
             
             <h3>Sample Structures</h3>
-            <button onclick="loadSample('caffeine.mol')">Load Caffeine</button>
-            <button onclick="loadSample('buckyball.mol')">Load Buckyball</button>
+            <button onclick="loadSample('caffeine.mol')">Caffeine</button>
+            <button onclick="loadSample('buckyball.mol')">Buckyball</button>
             
             <h3>Controls</h3>
-            <button onclick="Jmol.script(jmolApplet0, 'spin on')">Spin ON</button>
-            <button onclick="Jmol.script(jmolApplet0, 'spin off')">Spin OFF</button>
-            <button onclick="Jmol.script(jmolApplet0, 'wireframe')">Wireframe</button>
-            <button onclick="Jmol.script(jmolApplet0, 'spacefill')">Spacefill</button>
-            <button onclick="Jmol.script(jmolApplet0, 'cartoon')">Cartoon</button>
+            <button id="spinButton" onclick="toggleSpin()">Spin</button>
+            <button id="displayButton" onclick="toggleDisplayMode()">Display: Ball & Stick</button>
+            <div class="zoom-controls">
+                <button onclick="adjustZoom('-')">Zoom Out</button>
+                <button onclick="adjustZoom('+')">Zoom In</button>
+                <button onclick="resetZoom()">Reset Zoom</button>
+            </div>
             <button onclick="Jmol.script(jmolApplet0, 'console')">Open Console</button>
             <button onclick="showXYZEditor()">Edit XYZ</button>
             
@@ -625,7 +702,7 @@
         </div>
         <div id="xyz-content"></div>
         <textarea id="xyz-content-edit" class="xyz-editor"></textarea>
-        <div style="margin-top: 10px;">
+        <div class="action-buttons">
             <button onclick="updateStructure()">Update Structure</button>
             <button onclick="optimizeStructure()">Optimize Structure</button>
             <button onclick="saveXYZ()">Save XYZ File</button>
@@ -633,4 +710,3 @@
     </div>
 </body>
 </html>
-``` 
