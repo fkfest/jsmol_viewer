@@ -167,6 +167,17 @@
         .toggle-button.active {
             background-color: #e0e0ff;
         }
+        .control-line {
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .control-line span {
+            min-width: 20px;  /* Reduced from 70px since we only have an icon now */
+            font-weight: bold;
+            text-align: center;
+        }
     </style>
     <script type="text/javascript">
         var jmolApplet0;
@@ -253,17 +264,17 @@
                 case 'default':
                     Jmol.script(jmolApplet0, 'wireframe');
                     displayMode = 'wireframe';
-                    document.getElementById('displayButton').textContent = 'Display: Wireframe';
+                    document.getElementById('displayButton').textContent = 'Wireframe';
                     break;
                 case 'wireframe':
                     Jmol.script(jmolApplet0, 'spacefill');
                     displayMode = 'spacefill';
-                    document.getElementById('displayButton').textContent = 'Display: Spacefill';
+                    document.getElementById('displayButton').textContent = 'Spacefill';
                     break;
                 case 'spacefill':
                     Jmol.script(jmolApplet0, 'wireframe off; spacefill 23%; wireframe 0.15');  // Reset to default ball and stick
                     displayMode = 'default';
-                    document.getElementById('displayButton').textContent = 'Display: Ball & Stick';
+                    document.getElementById('displayButton').textContent = 'Ball & Stick';
                     break;
             }
         }
@@ -724,8 +735,7 @@
                 Jmol.script(jmolApplet0, 'set modelkitmode false; set picking ident');
             }
             document.getElementById('dragMinButton').classList.toggle('active');
-            document.getElementById('dragMinButton').textContent = 
-                isDragMinimize ? 'Drag-Minimize: ON' : 'Drag-Minimize: OFF';
+            document.getElementById('dragMinButton').textContent = 'Drag-Minimize';
         }
 
         // Add resize observer for JSmol viewer
@@ -754,29 +764,34 @@
             <h3>Load Structure</h3>
             <label for="structureFile">Choose molecular structure file:</label>
             <input type="file" id="structureFile" accept=".xyz,.pdb,.mol,.cif,.molden" onChange="handleFileSelect(event)" title="Select a molecular structure file">
-            <div id="status"></div>
-            
-            <h3>Sample Structures</h3>
             <button onclick="loadSample('caffeine.mol')">Caffeine</button>
             <button onclick="loadSample('buckyball.mol')">Buckyball</button>
+            <div id="status"></div>
             
-            <h3>Controls</h3>
-            <button id="spinButton" onclick="toggleSpin()">Spin</button>
-            <button id="displayButton" onclick="toggleDisplayMode()">Display: Ball & Stick</button>
-            <div class="zoom-controls">
-                <button onclick="adjustZoom('-')">Zoom Out</button>
-                <button onclick="adjustZoom('+')">Zoom In</button>
-                <button onclick="resetZoom()">Reset Zoom</button>
+            <h3>Display</h3>
+            <div class="control-line">
+                <button id="displayButton" onclick="toggleDisplayMode()">Ball & Stick</button>
+                <button id="spinButton" onclick="toggleSpin()">Spin</button>
             </div>
-            <button onclick="Jmol.script(jmolApplet0, 'console')">Open Console</button>
-            <button onclick="showXYZEditor()">Edit XYZ</button>
-            <button onclick="exportImage()">Export Image</button>
-            
-            <h3>Orbital Visualization</h3>
-            <button onclick="toggleOrbitalControls()">Show/Hide Orbitals</button>
+            <div class="control-line">
+                <button onclick="toggleOrbitalControls()">Show/Hide Orbitals</button>
+            </div>
+            <div class="control-line">
+                <span>🔍</span>
+                <button onclick="adjustZoom('-')">Out</button>
+                <button onclick="adjustZoom('+')">In</button>
+                <button onclick="resetZoom()">Reset</button>
+            </div>
 
-            <h3>Structure Tools</h3>
-            <button id="dragMinButton" class="toggle-button" onclick="toggleDragMinimize()">Drag-Minimize: OFF</button>
+            <h3>Controls</h3>
+            <div class="control-line">
+                <button onclick="showXYZEditor()">Edit XYZ</button>
+                <button id="dragMinButton" class="toggle-button" onclick="toggleDragMinimize()">Drag-Minimize</button>
+            </div>
+            <div class="control-line">
+                <button onclick="exportImage()">Export Image</button>
+                <button onclick="Jmol.script(jmolApplet0, 'console')">Console</button>
+            </div>
         </div>
     </div>
     <div id="orbitalControls">
