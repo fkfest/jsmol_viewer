@@ -8,8 +8,27 @@
     <script type="text/javascript" src="../../jsmol/JSmol.min.js"></script>
     <style>
         #container { display: flex; }
-        #viewer { flex: 1; min-height: 600px; }
-        #controls { width: 200px; padding: 10px; }
+        #viewer { 
+            flex: 1; 
+            min-height: 400px;
+            resize: both;
+            overflow: auto;
+            border: 1px solid #ccc;
+            padding: 2px;
+            position: relative;
+        }
+        #viewer-inner {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        #controls { 
+            width: 200px; 
+            padding: 10px;
+            transform-origin: top right;
+        }
         #editor-panel {
             position: fixed;
             width: 300px;
@@ -140,12 +159,21 @@
             transform-origin: center top;
             transition: transform 0.1s ease;
         }
+        .toggle-button {
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            padding: 5px 10px;
+        }
+        .toggle-button.active {
+            background-color: #e0e0ff;
+        }
     </style>
     <script type="text/javascript">
         var jmolApplet0;
         var isSpinning = false;
         var displayMode = 'default'; // Track current display mode
         var currentZoom = 100; // Track zoom level
+        var isDragMinimize = false; // Track drag-minimize state
         var Info = {
             width: 800,
             height: 600,
@@ -153,14 +181,16 @@
             color: "0xFFFFFF",
             use: "HTML5",
             j2sPath: "../../jsmol/j2s",
-            disableJ2SLoadMonitor: false,
+            addSelectionOptions: true,
+            serverURL: "https://chemapps.stolaf.edu/jmol/jsmol/php/jsmol.php",
+            disableJ2SLoadMonitor: true,
             disableInitialConsole: true,
             allowJavaScript: true,
             readyFunction: function(applet) {
                 jmolApplet0._ready = true;
                 console.log('JSmol initialization complete');
             },
-            script: "set debugScript off; set antialiasDisplay; set zoomLarge false;"
+            script: "set debugScript off; set antialiasDisplay; set zoomLarge false; set picking ON"
         };
 
         // Function to export the current view as an image
@@ -203,8 +233,11 @@
 
         $(document).ready(function() {
             Jmol.setDocument(0);
-            $("#viewer").html(Jmol.getAppletHtml("jmolApplet0", Info));
+            // Create inner container for JSmol
+            $("#viewer").html('<div id="viewer-inner"></div>');
+            $("#viewer-inner").html(Jmol.getAppletHtml("jmolApplet0", Info));
             initDraggable();
+            initResizeObserver();
         });
 
         // Add toggle spin function
@@ -665,21 +698,53 @@
         }
         
         // Add page zoom functionality
-        let pageZoom = 100;
+        let controlsZoom = 100;
         
         document.addEventListener('wheel', function(e) {
-            if (e.ctrlKey) {
+            // Only zoom if Ctrl is pressed and mouse is over the controls panel
+            if (e.ctrlKey && e.target.closest('#controls')) {
                 e.preventDefault();  // Prevent default browser zoom
                 
                 const delta = e.deltaY < 0 ? 10 : -10;
-                pageZoom = Math.min(Math.max(40, pageZoom + delta), 200);  // Limit zoom between 40% and 200%
+                controlsZoom = Math.min(Math.max(40, controlsZoom + delta), 200);  // Limit zoom between 40% and 200%
                 
-                document.body.style.transform = `scale(${pageZoom / 100})`;
+                // Apply zoom only to controls panel
+                document.getElementById('controls').style.transform = `scale(${controlsZoom / 100})`;
                 
                 // Update status to show current zoom level
-                document.getElementById('status').innerHTML = `Page zoom: ${pageZoom}%`;
+                document.getElementById('status').innerHTML = `Controls zoom: ${controlsZoom}%`;
             }
         }, { passive: false });  // Required for preventDefault to work
+
+        function toggleDragMinimize() {
+            isDragMinimize = !isDragMinimize;
+            if (isDragMinimize) {
+                Jmol.script(jmolApplet0, 'set modelkitmode; set picking dragMinimize');
+            } else {
+                Jmol.script(jmolApplet0, 'set modelkitmode false; set picking ident');
+            }
+            document.getElementById('dragMinButton').classList.toggle('active');
+            document.getElementById('dragMinButton').textContent = 
+                isDragMinimize ? 'Drag-Minimize: ON' : 'Drag-Minimize: OFF';
+        }
+
+        // Add resize observer for JSmol viewer
+        function initResizeObserver() {
+            const resizeObserver = new ResizeObserver(entries => {
+                for (const entry of entries) {
+                    const width = entry.contentRect.width;
+                    const height = entry.contentRect.height;
+                    // Update JSmol viewer size
+                    if (jmolApplet0 && jmolApplet0._ready) {
+                        Jmol.resizeApplet(jmolApplet0, [width, height]);
+                    }
+                }
+            });
+
+            // Start observing the viewer container
+            const viewer = document.getElementById('viewer');
+            resizeObserver.observe(viewer);
+        }
     </script>
 </head>
 <body>
@@ -709,6 +774,9 @@
             
             <h3>Orbital Visualization</h3>
             <button onclick="toggleOrbitalControls()">Show/Hide Orbitals</button>
+
+            <h3>Structure Tools</h3>
+            <button id="dragMinButton" class="toggle-button" onclick="toggleDragMinimize()">Drag-Minimize: OFF</button>
         </div>
     </div>
     <div id="orbitalControls">
