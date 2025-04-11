@@ -2,6 +2,10 @@
 
 A desktop application for molecular visualization built with Electron and JSmol. This application provides a native desktop experience for the powerful JSmol molecular viewer.
 
+Try it online: [Browser Version](https://fkfest.github.io/jsmol_viewer)
+
+Download: [Latest Release Executables](https://github.com/fkfest/jsmol_viewer/releases/latest)
+
 ## Features
 
 - Native desktop application experience
@@ -23,10 +27,19 @@ A desktop application for molecular visualization built with Electron and JSmol.
   - Atom selection mode for precise editing
   - Save edited structures as XYZ files
   - Draggable and resizable editor window
+- Drag&minimize feature for interactive atom movement with automatic structure optimization
 - Drag and drop file loading
 - Cross-platform support (Windows, macOS, Linux)
 
 ## Installation
+
+### Pre-built Executables
+
+Executables for Windows and Linux are automatically generated for each release on GitHub. You can:
+1. Download the latest version for your platform from the [releases page](https://github.com/fkfest/jsmol_viewer/releases/latest)
+2. Run the installer for your platform
+   - Windows: `.exe` installer
+   - Linux: `.AppImage` or `.deb`/`.rpm` package
 
 ### From Source
 
