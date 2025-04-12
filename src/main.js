@@ -5,7 +5,10 @@ const fs = require('fs')
 // Set up logging
 const logFile = path.join(app.getPath('userData'), 'jsmol.log');
 function log(message) {
-    fs.appendFileSync(logFile, new Date().toISOString() + ': ' + message + '\n');
+    const timestamp = new Date().toISOString();
+    const logMessage = `${timestamp}: ${message}\n`;
+    fs.appendFileSync(logFile, logMessage);
+    console.log(message);
 }
 
 // Clear log file
@@ -17,24 +20,8 @@ log('Args: ' + JSON.stringify(process.argv));
 let fileContent = null;
 
 function getFileFromArgs() {
-    const args = process.argv;
-    for (let i = 0; i < args.length; i++) {
-        const arg = args[i];
-        if (!arg.includes('electron') && !arg.endsWith('.exe')) {
-            log('Found potential file arg: ' + arg);
-            
-            // For installed version, just use the current working directory
-            const filePath = path.resolve(process.cwd(), arg);
-            log('Trying path: ' + filePath);
-            
-            if (fs.existsSync(filePath)) {
-                log('Found file at: ' + filePath);
-                return filePath;
-            }
-            log('File not found: ' + filePath);
-        }
-    }
-    return null;
+    const args = process.argv.slice(process.defaultApp ? 2 : 1);
+    return args.find(arg => !arg.startsWith('-'));
 }
 
 const fileArg = getFileFromArgs();
@@ -51,6 +38,7 @@ function createWindow() {
     const win = new BrowserWindow({
         width: 1200,
         height: 800,
+        show: false, // Don't show until fully loaded
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
@@ -61,40 +49,85 @@ function createWindow() {
     win.loadFile(path.join(__dirname, '../index.html'));
     win.setMenuBarVisibility(true);
 
-    win.webContents.on('did-finish-load', () => {
-        log('Window loaded, has file content: ' + !!fileContent);
-        if (fileContent) {
-            win.webContents.executeJavaScript(`
-                (function loadMolecule() {
-                    if (typeof Jmol !== 'undefined' && typeof jmolApplet0 !== 'undefined') {
-                        console.log('Starting molecule load...');
-                        const waitForReady = setInterval(() => {
-                            if (jmolApplet0._ready) {
-                                clearInterval(waitForReady);
-                                console.log('JSmol ready, loading molecule...');
-                                try {
-                                    const content = \`${fileContent.replace(/\\/g, '\\\\').replace(/`/g, '\\`')}\`;
-                                    Jmol.script(jmolApplet0, 'set echo top left; echo "Loading molecule...";');
-                                    setTimeout(() => {
-                                        Jmol.script(jmolApplet0, 'load inline "' + content + '";');
-                                        Jmol.script(jmolApplet0, 'set echo top left; echo "";');
-                                    }, 100);
-                                } catch (err) {
-                                    console.error('Error loading molecule:', err);
-                                }
-                            }
-                        }, 100);
-                        setTimeout(() => clearInterval(waitForReady), 10000); // Timeout after 10s
-                    } else {
-                        setTimeout(loadMolecule, 100);
-                    }
-                })();
-            `);
-        }
+    // Wait for window to be ready before showing
+    win.once('ready-to-show', () => {
+        win.show();
+        // Initialize JSmol after window is visible
+        win.webContents.executeJavaScript(`
+            if (typeof Jmol !== 'undefined' && typeof jmolApplet0 !== 'undefined') {
+                const container = document.getElementById('viewer-inner');
+                const width = container.offsetWidth || 400;
+                const height = container.offsetHeight || 400;
+                
+                // Force immediate canvas resize
+                const canvas = document.querySelector('#viewer-inner canvas');
+                if (canvas) {
+                    canvas.width = width;
+                    canvas.height = height;
+                }
+                
+                // Update JSmol dimensions
+                Jmol.resizeApplet(jmolApplet0, [width, height]);
+            }
+        `);
     });
+
+    // Handle window resizing
+    let resizeTimeout;
+    win.on('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            win.webContents.executeJavaScript(`
+                if (typeof Jmol !== 'undefined' && typeof jmolApplet0 !== 'undefined' && jmolApplet0._ready) {
+                    const container = document.getElementById('viewer-inner');
+                    const width = container.offsetWidth;
+                    const height = container.offsetHeight;
+                    
+                    const canvas = document.querySelector('#viewer-inner canvas');
+                    if (canvas) {
+                        canvas.width = width;
+                        canvas.height = height;
+                        Jmol.resizeApplet(jmolApplet0, [width, height]);
+                    }
+                }
+            `);
+        }, 100);
+    });
+
+    // Load file content if any
+    if (fileContent) {
+        win.webContents.on('did-finish-load', () => {
+            log('Window loaded');
+            win.webContents.executeJavaScript(`
+                if (typeof Jmol !== 'undefined' && typeof jmolApplet0 !== 'undefined') {
+                    console.log('Loading molecule...');
+                    const waitForReady = setInterval(() => {
+                        if (jmolApplet0._ready) {
+                            clearInterval(waitForReady);
+                            try {
+                                const content = \`${fileContent.replace(/\\/g, '\\\\').replace(/`/g, '\\`')}\`;
+                                Jmol.script(jmolApplet0, 'load inline "' + content + '"');
+                                console.log('Molecule loaded successfully');
+                            } catch (e) {
+                                console.error('Error loading molecule:', e);
+                            }
+                        }
+                    }, 100);
+                }
+            `);
+        });
+    }
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+    createWindow();
+
+    app.on('activate', () => {
+        if (BrowserWindow.getAllWindows().length === 0) {
+            createWindow();
+        }
+    });
+});
 
 app.on('window-all-closed', () => {
     log('Application closing');
