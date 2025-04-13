@@ -6,52 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script type="text/javascript" src="jsmol/jquery/jquery.min.js"></script>
     <script type="text/javascript" src="jsmol/JSmol.min.js"></script>
-    <script type="text/javascript" src="jsmol/JSmolJME.js"></script>
-    <script type="text/javascript" src="jsmol/jsme/jsme/jsme.nocache.js"></script>
     <style>
-        html, body {
-            height: 100vh;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-        }
-        #container {
-            display: flex;
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
-        }
-        #viewer {
-            flex: 1;
-            min-height: 400px;
-            min-width: 400px;
-            position: relative;
-            overflow: hidden;
-            display: block; /* Start with display: block */
-        }
-        #viewer.hidden {
-            display: none; /* Use display: none when hidden */
-        }
-        #viewer-inner {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            width: 100% !important;
-            height: 100% !important;
-        }
-        #viewer-inner canvas {
-            min-width: 400px !important;
-            min-height: 400px !important;
-        }
         #container { display: flex; }
         #viewer { 
             flex: 1; 
-            min-height: 400px;
-            min-width: 400px;
+            min-height: 200px;
+            min-width: 200px;
+            resize: both;
+            overflow: auto;
+            border: 1px solid #ccc;
+            padding: 2px;
             position: relative;
-            overflow: hidden;
         }
         #viewer-inner {
             width: 100%;
@@ -59,23 +24,6 @@
             position: absolute;
             top: 0;
             left: 0;
-            overflow: hidden;
-        }
-        #jsmeContainer { 
-            flex: 1; 
-            min-height: 400px;
-            min-width: 400px;
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            display: none; /* Start with display: none instead of visibility */
-            background: white;
-            z-index: 1; /* Ensure JSME appears above JSmol */
-        }
-        #jsmeContainer.visible {
-            display: block; /* Use display instead of visibility/opacity */
         }
         #controls { 
             width: 200px; 
@@ -234,15 +182,13 @@
     </style>
     <script type="text/javascript">
         var jmolApplet0;
-        var jsmeApplet;
         var isSpinning = false;
         var displayMode = 'default'; // Track current display mode
         var currentZoom = 100; // Track zoom level
         var isDragMinimize = false; // Track drag-minimize state
-        var is3D = true;  // Track current view mode
         var Info = {
-            width: 400,
-            height: 400,
+            width: "100%",
+            height: "100%",
             debug: false,
             color: "0xFFFFFF",
             use: "HTML5",
@@ -252,97 +198,11 @@
             disableJ2SLoadMonitor: true,
             disableInitialConsole: true,
             allowJavaScript: true,
-            // WebGL settings for Electron
-            useWebGl: true,
-            platform: "electron",
-            webglVersion: 2,
-            antialiasDisplay: true,
-            useWebWorker: false, // Disable web worker in Electron
             readyFunction: function(applet) {
-                if (!jmolApplet0) return;
-                
-                // Initial dimensions setup
-                var container = document.getElementById('viewer-inner');
-                container.style.width = '100%';
-                container.style.height = '100%';
-                
-                // Force canvas size during initialization
-                var canvas = document.querySelector('#viewer-inner canvas');
-                if (canvas) {
-                    canvas.style.width = '100%';
-                    canvas.style.height = '100%';
-                    // Set initial dimensions
-                    var width = container.offsetWidth || 400;
-                    var height = container.offsetHeight || 400;
-                    canvas.width = width;
-                    canvas.height = height;
-                    
-                    // Enable WebGL-specific optimizations
-                    if (canvas.getContext('webgl2')) {
-                        Jmol.script(applet, 'set webglVersion 2');
-                        Jmol.script(applet, 'set antialiasDisplay ON');
-                        Jmol.script(applet, 'set platformSpeed 8');
-                    }
-                }
-                
-                // Ensure proper initialization in Electron
-                setTimeout(function() {
-                    if (typeof Jmol !== 'undefined') {
-                        Jmol.resizeApplet(jmolApplet0, [container.offsetWidth || 400, container.offsetHeight || 400]);
-                    }
-                }, 100);
+                jmolApplet0._ready = true;
+                console.log('JSmol initialization complete');
             },
-            script: "set antialiasDisplay ON; set platformSpeed 8; set webglVersion 2"
-        };
-
-        // Helper function for resizing
-        function resizeViewer() {
-            if (!jmolApplet0 || !jmolApplet0._ready || jmolApplet0._isResizing) return;
-            
-            var container = document.getElementById('viewer-inner');
-            if (!container) return;
-            
-            var rect = container.getBoundingClientRect();
-            var width = Math.round(rect.width);
-            var height = Math.round(rect.height);
-            
-            if (width < 100 || height < 100) return; // Skip invalid sizes
-            
-            jmolApplet0._isResizing = true;
-            
-            // Set explicit canvas dimensions first
-            var canvas = container.querySelector('canvas');
-            if (canvas) {
-                canvas.width = width;
-                canvas.height = height;
-                canvas.style.width = width + 'px';
-                canvas.style.height = height + 'px';
-            }
-            
-            // Update container dimensions
-            container.style.width = width + 'px';
-            container.style.height = height + 'px';
-            
-            // Force JSmol to recognize new dimensions
-            try {
-                if (Jmol && Jmol.resizeApplet) {
-                    Jmol.resizeApplet(jmolApplet0, [width, height]);
-                    jmolApplet0._appletPanel.setScreenDimension(width, height);
-                    // Ensure proper refresh
-                    Jmol.refresh(jmolApplet0, true);
-                }
-            } catch (e) {
-                console.error('Resize error:', e);
-            }
-            
-            setTimeout(function() {
-                jmolApplet0._isResizing = false;
-            }, 100);
-        }
-
-        // Create a global reference to hold the JSME instance
-        var JSApplet = {
-            JSME: null
+            script: "set debugScript off; set antialiasDisplay; set zoomLarge false; set picking ON"
         };
 
         // Function to export the current view as an image
@@ -385,73 +245,9 @@
 
         $(document).ready(function() {
             Jmol.setDocument(0);
-            
-            // Create viewer container with specific initial size
-            var viewer = document.getElementById('viewer');
-            viewer.innerHTML = '<div id="viewer-inner" style="width:100%; height:100%; position:relative;"></div>';
-            
-            // Get initial dimensions
-            var container = document.getElementById('viewer-inner');
-            var initialWidth = container.offsetWidth || 400;
-            var initialHeight = container.offsetHeight || 400;
-            
-            // Update Info object with initial dimensions
-            Info.width = initialWidth;
-            Info.height = initialHeight;
-            Info.readyFunction = function(applet) {
-                if (!jmolApplet0) return;
-                
-                // Force initial dimensions
-                var container = document.getElementById('viewer-inner');
-                if (container) {
-                    var width = container.offsetWidth || 400;
-                    var height = container.offsetHeight || 400;
-                    
-                    container.style.width = width + 'px';
-                    container.style.height = height + 'px';
-                    
-                    var canvas = container.querySelector('canvas');
-                    if (canvas) {
-                        canvas.width = width;
-                        canvas.height = height;
-                        canvas.style.width = '100%';
-                        canvas.style.height = '100%';
-                    }
-                    
-                    // Ensure JSmol knows about the new dimensions
-                    if (typeof Jmol !== 'undefined') {
-                        Jmol.resizeApplet(jmolApplet0, [width, height]);
-                        // Force a refresh
-                        Jmol.refresh(jmolApplet0);
-                    }
-                }
-            };
-            
-            // Initialize JSmol
+            // Create inner container for JSmol
+            $("#viewer").html('<div id="viewer-inner"></div>');
             $("#viewer-inner").html(Jmol.getAppletHtml("jmolApplet0", Info));
-            
-            // Initialize JSME container
-            var jsmeContainer = document.getElementById('jsmeContainer');
-            jsmeContainer.style.width = '100%';
-            jsmeContainer.style.height = '100%';
-            jsmeContainer.style.position = 'relative';
-            jsmeContainer.style.minHeight = '400px';
-            
-            // Initialize JSME with proper size
-            window.jsmeOnLoad = function() {
-                setTimeout(function() {
-                    var container = document.getElementById('jsmeContainer');
-                    var width = container.offsetWidth;
-                    var height = container.offsetHeight;
-                    
-                    if (width > 0 && height > 0) {
-                        jsmeApplet = new JSApplet.JSME("jsmeContainer", width + "px", height + "px", {
-                            "options": "oldlook,star"
-                        });
-                    }
-                }, 100);
-            };
-            
             initDraggable();
             initResizeObserver();
         });
@@ -463,42 +259,25 @@
             document.getElementById('spinButton').textContent = isSpinning ? 'Stop' : 'Spin';
         }
 
-        let lastDisplayMode = 'default'; // Track the last display mode used in 3D view
-
-        function setDisplayMode(mode) {
-            switch(mode) {
-                case 'wireframe':
-                    Jmol.script(jmolApplet0, 'wireframe');
-                    break;
-                case 'spacefill':
-                    Jmol.script(jmolApplet0, 'spacefill');
-                    break;
-                case 'default':
-                default:
-                    Jmol.script(jmolApplet0, 'wireframe off; spacefill 23%; wireframe 0.15');
-                    mode = 'default';
-                    break;
-            }
-            displayMode = mode;
-            document.getElementById('displayButton').textContent = 
-                mode === 'default' ? 'Ball & Stick' : 
-                mode === 'wireframe' ? 'Wireframe' : 'Spacefill';
-        }
-
-        // Update toggleDisplayMode to use the new setDisplayMode function
+        // Add toggle display mode function
         function toggleDisplayMode() {
             switch(displayMode) {
                 case 'default':
-                    setDisplayMode('wireframe');
+                    Jmol.script(jmolApplet0, 'wireframe');
+                    displayMode = 'wireframe';
+                    document.getElementById('displayButton').textContent = 'Wireframe';
                     break;
                 case 'wireframe':
-                    setDisplayMode('spacefill');
+                    Jmol.script(jmolApplet0, 'spacefill');
+                    displayMode = 'spacefill';
+                    document.getElementById('displayButton').textContent = 'Spacefill';
                     break;
                 case 'spacefill':
-                    setDisplayMode('default');
+                    Jmol.script(jmolApplet0, 'wireframe off; spacefill 23%; wireframe 0.15');  // Reset to default ball and stick
+                    displayMode = 'default';
+                    document.getElementById('displayButton').textContent = 'Ball & Stick';
                     break;
             }
-            lastDisplayMode = displayMode;
         }
 
         // Add zoom control functions
@@ -962,249 +741,26 @@
 
         // Add resize observer for JSmol viewer
         function initResizeObserver() {
-            var debounceTimeout;
-            var resizeObserver = new ResizeObserver(entries => {
-                if (debounceTimeout) clearTimeout(debounceTimeout);
-                
-                debounceTimeout = setTimeout(() => {
-                    for (const entry of entries) {
-                        if (entry.target.id === 'viewer-inner') {
-                            resizeViewer();
-                        }
+            const resizeObserver = new ResizeObserver(entries => {
+                for (const entry of entries) {
+                    const width = entry.contentRect.width;
+                    const height = entry.contentRect.height;
+                    // Update JSmol viewer size
+                    if (jmolApplet0 && jmolApplet0._ready) {
+                        Jmol.resizeApplet(jmolApplet0, [width, height]);
                     }
-                }, 100);
+                }
             });
 
-            // Observe the viewer-inner container
-            const viewerInner = document.getElementById('viewer-inner');
-            if (viewerInner) {
-                resizeObserver.observe(viewerInner);
-            }
-            
-            // Also observe the main viewer container
+            // Start observing the viewer container
             const viewer = document.getElementById('viewer');
-            if (viewer) {
-                resizeObserver.observe(viewer);
-            }
+            resizeObserver.observe(viewer);
         }
-
-        function convertJsmolToJSME(callback) {
-            try {
-                // First try to get a 2D MOL file
-                let molData = Jmol.evaluateVar(jmolApplet0, 'write("mol")').trim();
-                
-                // If we got valid MOL data, try to clean it up
-                if (molData && molData.includes('V2000')) {
-                    // Ensure proper line endings
-                    molData = molData.replace(/\r?\n/g, '\n');
-                    
-                    // Add implicit hydrogens and clean up structure
-                    Jmol.script(jmolApplet0, 'select all; set addHydrogens true');
-                    let cleanMolData = Jmol.evaluateVar(jmolApplet0, 'write("mol")').trim();
-                    
-                    // Use the cleaned version if it's valid
-                    if (cleanMolData && cleanMolData.includes('V2000')) {
-                        molData = cleanMolData;
-                    }
-                    
-                    callback(molData);
-                } else {
-                    console.error('Failed to get valid MOL data from JSmol');
-                    document.getElementById('status').innerHTML = 'Error: Could not convert 3D structure to 2D';
-                }
-            } catch (e) {
-                console.error('Error converting JSmol to JSME:', e);
-                document.getElementById('status').innerHTML = 'Error converting structure';
-            }
-        }
-
-        function initJSME(container, width, height, molFile = null) {
-            // Create new JSME instance with explicit size
-            const jsmeInstance = new JSApplet.JSME(container, width + "px", height + "px", {
-                "options": "oldlook,star"
-            });
-
-            // Define structure change handler
-            const handleStructureChange = function() {
-                if (jsmeInstance && typeof jsmeInstance.molFile === 'function' && !is3D) {
-                    const currentMol = jsmeInstance.molFile();
-                    if (currentMol && currentMol.includes('V2000')) {
-                        lastMolFile = currentMol;
-                        // Directly load into JSmol in background
-                        Jmol.script(jmolApplet0, `set echo top left; echo "2D structure modified"`);
-                        Jmol.script(jmolApplet0, `load inline "${currentMol}" background`);
-                    }
-                }
-            };
-
-            // Add direct event listener for structure changes
-            jsmeInstance.options.onChange = handleStructureChange;
-            
-            // Store handler for cleanup
-            jsmeInstance._changeHandler = handleStructureChange;
-
-            // Load initial molecule if provided
-            if (molFile && typeof jsmeInstance.readMolFile === 'function') {
-                setTimeout(() => {
-                    jsmeInstance.readMolFile(molFile);
-                    // Store initial state
-                    lastMolFile = jsmeInstance.molFile();
-                }, 100);
-            }
-
-            return jsmeInstance;
-        }
-
-        // Update cleanupJSME to handle new event structure
-        function cleanupJSME() {
-            if (jsmeApplet) {
-                if (jsmeApplet.options) {
-                    jsmeApplet.options.onChange = null;
-                }
-                if (jsmeApplet._changeHandler) {
-                    delete jsmeApplet._changeHandler;
-                }
-                // Clear the container
-                const container = document.getElementById('jsmeContainer');
-                if (container) {
-                    container.innerHTML = '';
-                }
-            }
-        }
-
-        // Update convertJSMEToJsmol to handle background loading
-        function convertJSMEToJsmol(callback) {
-            try {
-                if (!jsmeApplet || typeof jsmeApplet.molFile !== 'function') {
-                    console.error('JSME not properly initialized');
-                    return;
-                }
-
-                let molFile = jsmeApplet.molFile();
-                if (!molFile || !molFile.includes('V2000')) {
-                    console.error('Invalid MOL file from JSME');
-                    document.getElementById('status').innerHTML = 'Error: Invalid 2D structure';
-                    return;
-                }
-
-                // Clean up the MOL file format
-                molFile = molFile.trim().replace(/\r?\n/g, '\n');
-                
-                // Always pass the molecule to ensure proper display
-                callback(molFile);
-                
-            } catch (e) {
-                console.error('Error converting JSME to JSmol:', e);
-                document.getElementById('status').innerHTML = 'Error converting structure';
-            }
-        }
-
-        function toggle2D3D() {
-            is3D = !is3D;
-            const viewer = document.getElementById('viewer');
-            const jsmeContainer = document.getElementById('jsmeContainer');
-            const button = document.getElementById('toggle2D3DButton');
-
-            if (is3D) {
-                // Switch to 3D (JSmol)
-                if (jsmeApplet && typeof jsmeApplet.molFile === 'function') {
-                    let molFile = jsmeApplet.molFile();
-                    if (molFile) {
-                        cleanupJSME(); // Cleanup old JSME instance
-                        jsmeContainer.style.display = 'none';
-                        viewer.style.display = 'block';
-                        
-                        // Get dimensions before switching
-                        const width = viewer.offsetWidth;
-                        const height = viewer.offsetHeight;
-                        
-                        setTimeout(() => {
-                            // Set canvas dimensions
-                            const canvas = document.querySelector('#viewer-inner canvas');
-                            if (canvas) {
-                                canvas.style.width = width + 'px';
-                                canvas.style.height = height + 'px';
-                                canvas.width = width;
-                                canvas.height = height;
-                            }
-                            
-                            // Load the structure with previously used display mode
-                            lastMolFile = molFile;
-                            Jmol.script(jmolApplet0, `load inline "${molFile}"; select all; minimize`);
-                            
-                            // Restore the last used display mode
-                            setTimeout(() => {
-                                setDisplayMode(lastDisplayMode || 'default');
-                                if (width > 0 && height > 0) {
-                                    Jmol.resizeApplet(jmolApplet0, [width, height]);
-                                }
-                                document.getElementById('status').innerHTML = '3D structure generated successfully';
-                            }, 100);
-                        }, 100);
-                    }
-                }
-            } else {
-                // Switch to 2D (JSME)
-                convertJsmolToJSME(molFile => {
-                    viewer.style.display = 'none';
-                    jsmeContainer.style.display = 'block';
-                    jsmeContainer.innerHTML = ''; // Clear old instance
-                    
-                    setTimeout(() => {
-                        const width = jsmeContainer.offsetWidth;
-                        const height = jsmeContainer.offsetHeight;
-                        
-                        if (width > 0 && height > 0) {
-                            lastMolFile = molFile;
-                            jsmeApplet = initJSME("jsmeContainer", width, height, molFile);
-                        }
-                    }, 150);
-                });
-            }
-            
-            button.textContent = is3D ? '2D Editor' : '3D Viewer';
-        }
-
-        // Update window.jsmeOnLoad to use the new initJSME function
-        window.jsmeOnLoad = function() {
-            // Add delay and multiple retries for Electron
-            let attempts = 0;
-            const maxAttempts = 3;
-            
-            function tryInitJSME() {
-                const container = document.getElementById('jsmeContainer');
-                const width = container.offsetWidth;
-                const height = container.offsetHeight;
-                
-                if (width > 0 && height > 0) {
-                    try {
-                        jsmeApplet = initJSME("jsmeContainer", width, height);
-                        console.log("JSME initialized successfully");
-                    } catch (e) {
-                        console.error("JSME init error:", e);
-                        if (attempts < maxAttempts) {
-                            attempts++;
-                            setTimeout(tryInitJSME, 500); // Retry after 500ms
-                        }
-                    }
-                } else {
-                    if (attempts < maxAttempts) {
-                        attempts++;
-                        setTimeout(tryInitJSME, 500);
-                    }
-                }
-            }
-
-            // Initial delay for Electron to ensure DOM is ready
-            setTimeout(tryInitJSME, 250);
-        };
-
     </script>
 </head>
 <body>
     <div id="container">
         <div id="viewer"></div>
-        <div id="jsmeContainer"></div>
         <div id="controls">
             <h3>Load Structure</h3>
             <label for="structureFile">Choose molecular structure file:</label>
@@ -1236,9 +792,6 @@
             <div class="control-line">
                 <button onclick="exportImage()">Export Image</button>
                 <button onclick="Jmol.script(jmolApplet0, 'console')">Console</button>
-            </div>
-            <div class="control-line">
-                <button id="toggle2D3DButton" onclick="toggle2D3D()">2D Editor</button>
             </div>
         </div>
     </div>
