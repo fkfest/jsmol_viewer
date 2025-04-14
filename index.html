@@ -876,6 +876,30 @@
 
         // Update toggle2D3D function
         function toggle2D3D() {
+            // Check if there's a molecule loaded by getting XYZ data
+            const xyzData = Jmol.evaluateVar(jmolApplet0, 'write("xyz")');
+            const atomCount = xyzData ? parseInt(xyzData.split('\n')[0]) : 0;
+
+            // If we're in 3D mode and there's no structure, just switch to 2D with empty editor
+            if (is3D && atomCount === 0) {
+                is3D = false;
+                const viewer = document.getElementById('viewer');
+                const jsmeContainer = document.getElementById('jsmeContainer');
+                const button = document.getElementById('toggle2D3DButton');
+                
+                cleanupJSME();
+                jsmeContainer.style.display = 'block';
+                viewer.style.display = 'none';
+                button.textContent = '3D Viewer';
+                
+                const width = jsmeContainer.offsetWidth;
+                const height = jsmeContainer.offsetHeight;
+                if (width > 0 && height > 0) {
+                    jsmeApplet = initJSME("jsmeContainer", width, height);
+                }
+                return;
+            }
+
             is3D = !is3D;
             const viewer = document.getElementById('viewer');
             const jsmeContainer = document.getElementById('jsmeContainer');
@@ -920,22 +944,35 @@
                     }
                 }
             } else {
-                // Switch to 2D (JSME)
-                convertJsmolToJSME(molFile => {
+                // Switch to 2D (JSME) - only try to convert if there's a structure
+                if (atomCount > 0) {
+                    convertJsmolToJSME(molFile => {
+                        viewer.style.display = 'none';
+                        jsmeContainer.style.display = 'block';
+                        jsmeContainer.innerHTML = ''; // Clear old instance
+                        
+                        setTimeout(() => {
+                            const width = jsmeContainer.offsetWidth;
+                            const height = jsmeContainer.offsetHeight;
+                            
+                            if (width > 0 && height > 0) {
+                                lastMolFile = molFile;
+                                jsmeApplet = initJSME("jsmeContainer", width, height, molFile);
+                            }
+                        }, 150);
+                    });
+                } else {
+                    // No structure in JSmol, just show empty 2D editor
                     viewer.style.display = 'none';
                     jsmeContainer.style.display = 'block';
                     jsmeContainer.innerHTML = ''; // Clear old instance
                     
-                    setTimeout(() => {
-                        const width = jsmeContainer.offsetWidth;
-                        const height = jsmeContainer.offsetHeight;
-                        
-                        if (width > 0 && height > 0) {
-                            lastMolFile = molFile;
-                            jsmeApplet = initJSME("jsmeContainer", width, height, molFile);
-                        }
-                    }, 150);
-                });
+                    const width = jsmeContainer.offsetWidth;
+                    const height = jsmeContainer.offsetHeight;
+                    if (width > 0 && height > 0) {
+                        jsmeApplet = initJSME("jsmeContainer", width, height);
+                    }
+                }
             }
             
             button.textContent = is3D ? '2D Editor' : '3D Viewer';
