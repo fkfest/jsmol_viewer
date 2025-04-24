@@ -8,6 +8,7 @@
     <script type="text/javascript" src="jsmol/JSmol.min.js"></script>
     <script type="text/javascript" src="jsmol/JSmolJME.js"></script>
     <script type="text/javascript" src="jsmol/jsme/jsme/jsme.nocache.js"></script>
+    <script type="text/javascript" src="renderer.js"></script>
     <style>
         body {
             margin: 0;
@@ -213,13 +214,375 @@
             padding-left: 40px;  /* Increased padding from 20px to 40px to move button right */
             width: 100%;
             margin-top: 16px;
+            margin-bottom: 16px;  /* Add space below console button */
         }
+        
+        /* Make ElemCo button container match console container */
+        .elemco-container {
+            display: flex;
+            justify-content: flex-start;
+            padding-left: 40px;
+            width: 100%;
+        }
+
+        #elemcoButton {
+            background: linear-gradient(to bottom, #ffffff 0%, #f5f5f5 100%);
+            border: 1px solid #ccc;
+            padding: 8px calc(16px + 20px);  /* Original padding + 2.5px on each side = 5px total increase */
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            box-shadow: 
+                0 2px 4px rgba(0,0,0,0.1),
+                inset 0 1px 0 rgba(255,255,255,0.9),
+                inset 0 -1px 0 rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+            margin: 8px 0;  /* Consistent margins */
+        }
+
+        #elemcoButton img {
+            height: 32px;  /* Adjust logo size to better fit the button */
+        }
+
+        /* Adjust container margins to match Console button placement */
+        .console-container, .elemco-container {
+            display: flex;
+            justify-content: flex-start;
+            padding-left: 40px;
+            width: 100%;
+            margin: 8px 0;  /* Equal margins for both containers */
+        }
+
         #structureFile {
             margin-bottom: 8px;  /* Add space below the file input */
             display: block;  /* Ensure it's on its own line */
         }
         .sample-buttons {
             margin-top: 4px;  /* Add space above the sample buttons */
+        }
+        #elemcoPanel {
+            position: fixed;
+            width: 400px;
+            padding: 10px;
+            display: none;
+            background: white;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 9999;
+            top: 120px;
+            left: 120px;
+            resize: both;
+            overflow: auto;
+            min-width: 300px;
+            min-height: 400px;
+        }
+        #elemco-header {
+            cursor: move;
+            padding: 10px;
+            background: #f0f0f0;
+            margin: -10px -10px 10px -10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ccc;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        #elemco-header img {
+            height: 24px;
+            margin-right: 10px;
+        }
+        .elemco-input-group {
+            margin-bottom: 15px;
+        }
+        .elemco-input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .elemco-input-group input,
+        .elemco-input-group select,
+        .elemco-input-group textarea {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 5px;
+        }
+        .elemco-input-group textarea {
+            height: 150px;
+            font-family: monospace;
+        }
+        #elemcoButton {
+            background: linear-gradient(to bottom, #ffffff 0%, #f5f5f5 100%);
+            border: 1px solid #ccc;
+            padding: 16px;  /* Increased padding */
+            margin: 20px 40px;  /* Increased margins */
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: calc(100% - 80px);  /* Account for margins */
+            border-radius: 12px;  /* More rounded corners */
+            box-shadow: 
+                0 2px 4px rgba(0,0,0,0.1),  /* Subtle drop shadow */
+                inset 0 1px 0 rgba(255,255,255,0.9),  /* Top inner highlight */
+                inset 0 -1px 0 rgba(0,0,0,0.05);  /* Bottom inner shadow */
+            transition: all 0.2s ease;  /* Smooth transitions */
+        }
+        #elemcoButton:hover {
+            background: linear-gradient(to bottom, #f8f8f8 0%, #f0f0f0 100%);
+            transform: translateY(-1px);
+            box-shadow: 
+                0 4px 8px rgba(0,0,0,0.15),
+                inset 0 1px 0 rgba(255,255,255,0.9),
+                inset 0 -1px 0 rgba(0,0,0,0.05);
+        }
+        #elemcoButton:active {
+            transform: translateY(1px);
+            box-shadow: 
+                0 1px 2px rgba(0,0,0,0.1),
+                inset 0 1px 0 rgba(255,255,255,0.9),
+                inset 0 -1px 0 rgba(0,0,0,0.05);
+        }
+        #elemcoButton img {
+            height: 48px;  /* Made logo even bigger */
+        }
+        .preview-note {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        button {
+            background: linear-gradient(to bottom, #ffffff 0%, #f5f5f5 100%);
+            border: 1px solid #ccc;
+            padding: 6px 12px;  /* Reduced padding */
+            border-radius: 6px;  /* Slightly reduced border radius */
+            cursor: pointer;
+            box-shadow: 
+                0 2px 4px rgba(0,0,0,0.1),
+                inset 0 1px 0 rgba(255,255,255,0.9),
+                inset 0 -1px 0 rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+            font-size: 13px;  /* Slightly smaller font */
+            color: #333;
+            min-width: 70px;  /* Reduced minimum width */
+            margin: 0;
+        }
+
+        button:hover {
+            background: linear-gradient(to bottom, #f8f8f8 0%, #f0f0f0 100%);
+            transform: translateY(-1px);
+            box-shadow: 
+                0 4px 8px rgba(0,0,0,0.15),
+                inset 0 1px 0 rgba(255,255,255,0.9),
+                inset 0 -1px 0 rgba(0,0,0,0.05);
+        }
+
+        button:active {
+            transform: translateY(1px);
+            box-shadow: 
+                0 1px 2px rgba(0,0,0,0.1),
+                inset 0 1px 0 rgba(255,255,255,0.9),
+                inset 0 -1px 0 rgba(0,0,0,0.05);
+        }
+
+        /* Special styling for the ElemCo button since it's larger */
+        #elemcoButton {
+            padding: 12px;  /* Slightly reduced padding */
+            margin: 16px 40px;  /* Slightly reduced margin */
+            width: calc(100% - 80px);
+            border-radius: 10px;  /* Slightly reduced border radius */
+        }
+
+        #elemcoButton img {
+            height: 40px;  /* Slightly reduced logo size */
+        }
+
+        /* Toggle button active state */
+        .toggle-button.active {
+            background: linear-gradient(to bottom, #e0e0ff 0%, #d5d5ff 100%);
+            box-shadow: 
+                inset 0 1px 3px rgba(0,0,0,0.1),
+                inset 0 1px 0 rgba(255,255,255,0.9);
+        }
+
+        /* Consistent styling for console button */
+        .console-button {
+            font-size: 14px;  /* Slightly reduced font size */
+            padding: 7px 14px;  /* Slightly reduced padding */
+        }
+
+        /* Action buttons in panels */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        /* Control line buttons */
+        .control-line {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 4px 0;
+        }
+
+        /* Sample buttons container */
+        .sample-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        /* Mode buttons */
+        .mode-buttons {
+            margin: 10px 0;
+        }
+
+        /* HOMO-LUMO controls */
+        .homo-lumo-controls {
+            display: flex;
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        /* Panel close buttons */
+        #editor-header button,
+        #orbital-header button,
+        #elemco-header button {
+            min-width: unset;
+            padding: 4px 10px;  /* Reduced padding */
+            font-size: 12px;  /* Smaller font */
+        }
+
+        /* Zoom control buttons - make them more compact */
+        .control-line button[onclick*="adjustZoom"] {
+            min-width: 40px;  /* Reduced from default 70px */
+            padding: 6px 8px;  /* Reduced horizontal padding */
+        }
+
+        /* Keep the Reset button at normal width */
+        .control-line button[onclick*="resetZoom"] {
+            min-width: 70px;
+        }
+
+        /* Edit buttons - make them more compact */
+        .control-line button[onclick*="showXYZEditor"],
+        #dragMinButton,
+        #toggle2D3DButton {
+            min-width: 50px;  /* Reduced from default 70px */
+            padding: 6px 8px;  /* Consistent with other compact buttons */
+        }
+
+        /* Console and ElemCo containers */
+        .console-container, .elemco-container {
+            margin: 8px 0;
+            padding-left: 40px;
+        }
+
+        /* Common button styles */
+        .console-button, #elemcoButton {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            font-size: 14px;
+            background: linear-gradient(to bottom, #ffffff 0%, #f5f5f5 100%);
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 
+                0 2px 4px rgba(0,0,0,0.1),
+                inset 0 1px 0 rgba(255,255,255,0.9),
+                inset 0 -1px 0 rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+        }
+
+        /* ElemCo button image */
+        #elemcoButton img {
+            height: 32px;
+        }
+
+        /* Remove all previous button container styles */
+        .console-container, .elemco-container {
+            padding-left: 40px;
+            margin: 8px 0;
+            width: auto;  /* Remove fixed width */
+        }
+
+        /* Button styles */
+        .console-button, #elemcoButton {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            font-size: 14px;
+            background: linear-gradient(to bottom, #ffffff 0%, #f5f5f5 100%);
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 
+                0 2px 4px rgba(0,0,0,0.1),
+                inset 0 1px 0 rgba(255,255,255,0.9),
+                inset 0 -1px 0 rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+            margin: 0;  /* Remove any margin from buttons */
+        }
+
+        /* Remove any width constraints on buttons */
+        #elemcoButton {
+            width: auto;
+        }
+
+        #elemcoButton img {
+            height: 32px;
+        }
+
+        /* Container styles */
+        .console-container, .elemco-container {
+            padding-left: 40px;
+            margin: 8px 0;
+            width: auto;
+            display: block;
+        }
+
+        /* Button base styles */
+        .console-button, #elemcoButton {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            font-size: 14px;
+            background: linear-gradient(to bottom, #ffffff 0%, #f5f5f5 100%);
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 
+                0 2px 4px rgba(0,0,0,0.1),
+                inset 0 1px 0 rgba(255,255,255,0.9),
+                inset 0 -1px 0 rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+            margin: 0;
+        }
+
+        /* ElemCo button image */
+        #elemcoButton img {
+            height: 32px;
+        }
+
+        #elemcoButton {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px calc(16px + 13px);  /* Original padding + 2.5px on each side = 5px total increase */
+            font-size: 14px;
+            background: linear-gradient(to bottom, #ffffff 0%, #f5f5f5 100%);
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 
+                0 2px 4px rgba(0,0,0,0.1),
+                inset 0 1px 0 rgba(255,255,255,0.9),
+                inset 0 -1px 0 rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+        }
+
+        #elemcoButton img {
+            height: 32px;
         }
     </style>
     <script type="text/javascript">
@@ -756,7 +1119,7 @@
                 }
             }
 
-            // Make both panels draggable
+            // Make all panels draggable
             makeDraggable(
                 document.getElementById('editor-panel'),
                 document.getElementById('editor-header')
@@ -764,6 +1127,10 @@
             makeDraggable(
                 document.getElementById('orbitalControls'),
                 document.getElementById('orbital-header')
+            );
+            makeDraggable(
+                document.getElementById('elemcoPanel'),
+                document.getElementById('elemco-header')
             );
         }
         
@@ -1041,6 +1408,102 @@
             // Initial delay for Electron to ensure DOM is ready
             setTimeout(tryInitJSME, 250);
         };
+
+        function showElemCoPanel() {
+            document.getElementById('elemcoPanel').style.display = 'block';
+            initializeElemCoListeners();
+            updateElemCoInput();
+        }
+
+        function hideElemCoPanel() {
+            document.getElementById('elemcoPanel').style.display = 'none';
+        }
+
+        function generateElemCoInput() {
+            updateElemCoInput();
+            document.getElementById('status').innerHTML = 'ElemCo.jl input reset to default';
+        }
+
+        function copyElemCoInput() {
+            const input = document.getElementById('elemco-input');
+            input.select();
+            document.execCommand('copy');
+            document.getElementById('status').innerHTML = 'Input copied to clipboard';
+        }
+
+        // Initialize XYZ input function
+        function updateElemCoInput() {
+            const method = document.getElementById('elemco-method').value;
+            const basis = document.getElementById('elemco-basis').value;
+            const charge = parseInt(document.getElementById('elemco-charge').value) || 0;
+            const multiplicity = parseInt(document.getElementById('elemco-multiplicity').value) || 0;
+            
+            // Get current molecular structure from JSmol
+            const xyzData = Jmol.evaluateVar(jmolApplet0, 'write("xyz")');
+            if (!xyzData) {
+                document.getElementById('elemco-input').value = '# Please load a molecule first';
+                return;
+            }
+
+            // Format ElemCo.jl input with complete XYZ specification
+            let elemcoInput = `using ElemCo
+
+# Molecule specification
+geometry = """
+${xyzData.trim()}
+"""
+
+# Set basis set
+basis = "${basis}"
+
+`;
+
+            // Add charge and multiplicity settings only if they are non-zero
+            if (charge !== 0 || multiplicity !== 0) {
+                elemcoInput += `# Set charge and multiplicity\n@set wf charge=${charge} ms2=${multiplicity}\n\n`;
+            }
+
+            // Add calculation commands
+            elemcoInput += `# Run calculation\n@dfhf  # Run HF calculation first\n`;
+
+            // Add coupled cluster calculation if method is not HF
+            if (method !== 'HF') {
+                elemcoInput += `\n# Run ${method} calculation\n@cc ${method.toLowerCase()}\n`;
+            }
+
+            document.getElementById('elemco-input').value = elemcoInput;
+        }
+
+        // Remove previous event listeners and add new ones
+        function initializeElemCoListeners() {
+            const method = document.getElementById('elemco-method');
+            const basis = document.getElementById('elemco-basis');
+            const charge = document.getElementById('elemco-charge');
+            const multiplicity = document.getElementById('elemco-multiplicity');
+
+            // Remove old listeners if they exist
+            const oldListener = function() {};
+            method?.removeEventListener('change', oldListener);
+            basis?.removeEventListener('change', oldListener);
+            charge?.removeEventListener('input', oldListener);
+            multiplicity?.removeEventListener('input', oldListener);
+
+            // Add new listeners
+            method?.addEventListener('change', updateElemCoInput);
+            basis?.addEventListener('change', updateElemCoInput);
+            charge?.addEventListener('input', updateElemCoInput);
+            multiplicity?.addEventListener('input', updateElemCoInput);
+        }
+
+        // Call initialization when showing panel
+        function showElemCoPanel() {
+            document.getElementById('elemcoPanel').style.display = 'block';
+            initializeElemCoListeners();
+            updateElemCoInput();
+        }
+
+        // Initialize when document is ready
+        document.addEventListener('DOMContentLoaded', initializeElemCoListeners);
     </script>
 </head>
 <body>
@@ -1049,55 +1512,59 @@
         <div id="jsmeContainer"></div>
         <div id="controls">
             <h3>Load Structure</h3>
-            <label for="structureFile">Choose molecular structure file:</label>
             <input type="file" id="structureFile" accept=".xyz,.pdb,.mol,.cif,.molden" onChange="handleFileSelect(event)" title="Select a molecular structure file">
             <div class="sample-buttons">
-                <button onclick="loadSample('caffeine.mol')">Caffeine</button>
-                <button onclick="loadSample('buckyball.mol')">Buckyball</button>
+                <button onclick="loadSample('caffeine.mol')" title="Load a caffeine molecule structure">Caffeine</button>
+                <button onclick="loadSample('buckyball.mol')" title="Load a buckminsterfullerene (C60) structure">Buckyball</button>
             </div>
             <div id="status"></div>
             
             <h3>Display</h3>
             <div class="control-line">
-                <button id="displayButton" onclick="toggleDisplayMode()">Ball & Stick</button>
-                <button id="spinButton" onclick="toggleSpin()">Spin</button>
+                <button id="displayButton" onclick="toggleDisplayMode()" title="Toggle between ball & stick, wireframe, and spacefill display modes">Ball & Stick</button>
+                <button id="spinButton" onclick="toggleSpin()" title="Start or stop continuous rotation of the molecule">Spin</button>
             </div>
             <div class="control-line">
-                <button onclick="toggleOrbitalControls()">Orbitals</button>
-                <button onclick="exportImage()">Export Image</button>
+                <button onclick="toggleOrbitalControls()" title="Show or hide molecular orbital visualization controls">Orbitals</button>
+                <button onclick="exportImage()" title="Save the current view as an image file">Export Image</button>
             </div>
             <div class="control-line">
                 <span>🔍</span>
-                <button onclick="adjustZoom('-')">Out</button>
-                <button onclick="adjustZoom('+')">In</button>
-                <button onclick="resetZoom()">Reset</button>
+                <button onclick="adjustZoom('-')" title="Zoom out from the molecule">Out</button>
+                <button onclick="adjustZoom('+')" title="Zoom in on the molecule">In</button>
+                <button onclick="resetZoom()" title="Reset zoom level to default">Reset</button>
             </div>
 
             <h3>Edit</h3>
             <div class="control-line">
-                <button onclick="showXYZEditor()">XYZ</button>
-                <button id="dragMinButton" class="toggle-button" onclick="toggleDragMinimize()">3D</button>
-                <button id="toggle2D3DButton" onclick="toggle2D3D()">2D Editor</button>
+                <button onclick="showXYZEditor()" title="Open XYZ coordinate editor">XYZ</button>
+                <button id="dragMinButton" class="toggle-button" onclick="toggleDragMinimize()" title="Toggle 3D manipulation mode with energy minimization">3D</button>
+                <button id="toggle2D3DButton" onclick="toggle2D3D()" title="Switch between 2D and 3D molecular editors">2D Editor</button>
             </div>
 
             <div class="console-container">
-                <button onclick="Jmol.script(jmolApplet0, 'console')" class="console-button">Console</button>
+                <button onclick="Jmol.script(jmolApplet0, 'console')" class="console-button" title="Open JSmol scripting console">Console</button>
+            </div>
+            <div class="elemco-container">
+                <button id="elemcoButton" onclick="showElemCoPanel()">
+                    <img src="build/elemco_logo.png" alt="ElemCo.jl" title="Generate ElemCo.jl Input">
+                </button>
             </div>
         </div>
     </div>
     <div id="orbitalControls">
         <div id="orbital-header">
             <h3>Orbital Controls</h3>
-            <button onclick="toggleOrbitalControls()">Close</button>
+            <button onclick="toggleOrbitalControls()" title="Close orbital visualization panel">Close</button>
         </div>
         <div class="homo-lumo-controls">
-            <button onclick="showHOMO()">Show HOMO</button>
-            <button onclick="showLUMO()">Show LUMO</button>
+            <button onclick="showHOMO()" title="Display the Highest Occupied Molecular Orbital (HOMO)">Show HOMO</button>
+            <button onclick="showLUMO()" title="Display the Lowest Unoccupied Molecular Orbital (LUMO)">Show LUMO</button>
         </div>
         <div class="orbital-nav">
-            <button onclick="changeOrbital(-1)">←</button>
+            <button onclick="changeOrbital(-1)" title="Show previous orbital">←</button>
             <span>Orbital: <span id="currentOrbital">1</span></span>
-            <button onclick="changeOrbital(1)">→</button>
+            <button onclick="changeOrbital(1)" title="Show next orbital">→</button>
         </div>
         <div id="orbitalList"></div>
         <p>Use arrow keys ↑/↓ to navigate orbitals</p>
@@ -1105,17 +1572,61 @@
     <div id="editor-panel">
         <div id="editor-header">
             <h3>XYZ Editor</h3>
-            <button onclick="hideXYZEditor()">Close</button>
+            <button onclick="hideXYZEditor()" title="Close XYZ editor panel">Close</button>
         </div>
         <div class="mode-buttons">
-            <button id="toggle-edit-mode" onclick="toggleEditMode()">Switch to Edit Mode</button>
+            <button id="toggle-edit-mode" onclick="toggleEditMode()" title="Toggle between selection and text edit modes">Switch to Edit Mode</button>
         </div>
         <div id="xyz-content"></div>
         <textarea id="xyz-content-edit" class="xyz-editor"></textarea>
         <div class="action-buttons">
-            <button onclick="updateStructure()">Update Structure</button>
-            <button onclick="optimizeStructure()">Optimize Structure</button>
-            <button onclick="saveXYZ()">Save XYZ File</button>
+            <button onclick="updateStructure()" title="Update molecular structure with current XYZ coordinates">Update Structure</button>
+            <button onclick="optimizeStructure()" title="Optimize molecular geometry using built-in force field">Optimize Structure</button>
+            <button onclick="saveXYZ()" title="Save current coordinates as XYZ file">Save XYZ File</button>
+        </div>
+    </div>
+    <div id="elemcoPanel">
+        <div id="elemco-header">
+            <div style="display: flex; align-items: center;">
+                <img src="build/elemco_logo.png" alt="ElemCo.jl">
+                <h3>ElemCo.jl Input</h3>
+            </div>
+            <button onclick="hideElemCoPanel()" title="Close ElemCo.jl input panel">Close</button>
+        </div>
+        <div class="elemco-input-group">
+            <label for="elemco-method">Method:</label>
+            <select id="elemco-method">
+                <option value="DCSD" selected>DCSD</option>
+                <option value="CCSD(T)">CCSD(T)</option>
+                <option value="MP2">MP2</option>
+                <option value="HF">HF</option>
+            </select>
+        </div>
+        <div class="elemco-input-group">
+            <label for="elemco-basis">Basis Set:</label>
+            <select id="elemco-basis">
+                <option value="cc-pVDZ" selected>cc-pVDZ</option>
+                <option value="cc-pVTZ">cc-pVTZ</option>
+                <option value="aug-cc-pVDZ">aug-cc-pVDZ</option>
+                <option value="aug-cc-pVTZ">aug-cc-pVTZ</option>
+            </select>
+        </div>
+        <div class="elemco-input-group">
+            <label for="elemco-charge">Charge:</label>
+            <input type="number" id="elemco-charge" value="0">
+        </div>
+        <div class="elemco-input-group">
+            <label for="elemco-multiplicity">Multiplicity:</label>
+            <input type="number" id="elemco-multiplicity" value="0" min="0">
+        </div>
+        <div class="elemco-input-group">
+            <label for="elemco-input">Input Editor:</label>
+            <textarea id="elemco-input"></textarea>
+            <div class="preview-note">Note: Changes to parameters will update this editor. You can also edit directly.</div>
+        </div>
+        <div class="action-buttons">
+            <button onclick="generateElemCoInput()" title="Reset input to default settings">Reset Input</button>
+            <button onclick="copyElemCoInput()" title="Copy input text to clipboard">Copy to Clipboard</button>
         </div>
     </div>
 </body>

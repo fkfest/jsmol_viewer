@@ -21,6 +21,7 @@
       "main.js",
       "index.html",
       "jsmol/**/*",
+      "build/**/*",
       "package.json"
     ],
     "directories": {

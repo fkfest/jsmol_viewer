@@ -52,6 +52,7 @@ function createWindow() {
         width: 1200,
         height: 800,
         resizable: true,
+        icon: path.join(__dirname, 'build', process.platform === 'win32' ? 'icon.ico' : process.platform === 'darwin' ? 'icon.icns' : 'icons/512x512.png'),
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
