@@ -96,6 +96,84 @@ function createWindow() {
     });
 }
 
+// Function to update method options based on DF toggle
+function updateMethodOptions() {
+    const dfEnabled = document.getElementById('elemco-df').checked;
+    const methodSelect = document.getElementById('elemco-method');
+    const selectedMethod = methodSelect.value;
+    
+    // Store all available methods
+    const allMethods = {
+        standard: ['HF', 'MP2', 'DCSD', 'CCSD(T)', 'CCSDT', 'DC-CCSDT'],
+        df: ['HF', 'MP2', 'SVD-DCSD']
+    };
+
+    // Clear existing options
+    methodSelect.innerHTML = '';
+
+    // Add appropriate methods based on DF toggle
+    const methods = dfEnabled ? allMethods.df : allMethods.standard;
+    methods.forEach(method => {
+        const option = document.createElement('option');
+        option.value = method;
+        option.text = method;
+        methodSelect.appendChild(option);
+    });
+
+    // Try to maintain selected method if it's still available
+    if (methods.includes(selectedMethod)) {
+        methodSelect.value = selectedMethod;
+    }
+
+    // Update the input text
+    updateElemCoInput();
+}
+
+// Update the updateElemCoInput function to handle DF
+function updateElemCoInput() {
+    const dfEnabled = document.getElementById('elemco-df').checked;
+    const method = document.getElementById('elemco-method').value;
+    const basis = document.getElementById('elemco-basis').value;
+    const charge = parseInt(document.getElementById('elemco-charge').value) || 0;
+    const multiplicity = parseInt(document.getElementById('elemco-multiplicity').value) || 0;
+    
+    // Get current molecular structure from JSmol
+    const xyzData = Jmol.evaluateVar(jmolApplet0, 'write("xyz")');
+    if (!xyzData) {
+        document.getElementById('elemco-input').value = '# Please load a molecule first';
+        return;
+    }
+
+    // Format ElemCo.jl input with complete XYZ specification
+    let elemcoInput = `using ElemCo
+
+# Molecule specification
+geometry = """
+${xyzData.trim()}
+"""
+
+# Set basis set
+basis = "${basis}"
+
+`;
+
+    // Add charge and multiplicity settings only if they are non-zero
+    if (charge !== 0 || multiplicity !== 0) {
+        elemcoInput += `# Set charge and multiplicity\n@set wf charge=${charge} ms2=${multiplicity}\n\n`;
+    }
+
+    // Add calculation commands
+    elemcoInput += `# Run HF calculation first\n${dfEnabled ? '@dfhf' : '@hf'}\n`;
+
+    // Add coupled cluster calculation if method is not HF
+    if (method !== 'HF') {
+        const ccCommand = dfEnabled ? '@dfcc' : '@cc';
+        elemcoInput += `\n# Run ${method} calculation\n${ccCommand} ${method.toLowerCase()}\n`;
+    }
+
+    document.getElementById('elemco-input').value = elemcoInput;
+}
+
 app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {
