@@ -264,7 +264,7 @@
         }
         #elemcoPanel {
             position: fixed;
-            width: 400px;
+            width: 350px; /* Reduced from 400px */
             padding: 10px;
             display: none;
             background: white;
@@ -275,8 +275,9 @@
             left: 120px;
             resize: both;
             overflow: auto;
-            min-width: 300px;
-            min-height: 400px;
+            min-width: 250px; /* Reduced from 300px */
+            min-height: 300px; /* Reduced from 400px */
+            max-height: 90vh;
         }
         #elemco-header {
             cursor: move;
@@ -310,7 +311,7 @@
             margin-bottom: 5px;
         }
         .elemco-input-group textarea {
-            height: 150px;
+            height: 120px; /* Reduced from 150px */
             font-family: monospace;
         }
         #elemcoButton {
@@ -1457,81 +1458,32 @@
             document.getElementById('status').innerHTML = 'Input copied to clipboard';
         }
 
-        // Initialize XYZ input function
-        function updateElemCoInput() {
-            const dfEnabled = document.getElementById('elemco-df').checked;
-            const method = document.getElementById('elemco-method').value;
-            const basis = document.getElementById('elemco-basis').value;
-            const charge = parseInt(document.getElementById('elemco-charge').value) || 0;
-            const multiplicity = parseInt(document.getElementById('elemco-multiplicity').value) || 0;
-            
-            // Get current molecular structure from JSmol
-            const xyzData = Jmol.evaluateVar(jmolApplet0, 'write("xyz")');
-            if (!xyzData) {
-                document.getElementById('elemco-input').value = '# Please load a molecule first';
-                return;
-            }
-
-            // Format ElemCo.jl input with complete XYZ specification
-            let elemcoInput = `using ElemCo
-
-# Molecule specification
-geometry = """
-${xyzData.trim()}
-"""
-
-# Set basis set
-basis = "${basis}"
-
-`;
-
-            // Add charge and multiplicity settings only if they are non-zero
-            if (charge !== 0 || multiplicity !== 0) {
-                elemcoInput += `# Set charge and multiplicity\n@set wf charge=${charge} ms2=${multiplicity}\n\n`;
-            }
-
-            // Add calculation commands
-            elemcoInput += `# Run HF calculation first\n${dfEnabled ? '@dfhf' : '@dfhf'}\n`;
-
-            // Add coupled cluster calculation if method is not HF
-            if (method !== 'HF') {
-                const ccCommand = dfEnabled ? '@dfcc' : '@cc';
-                elemcoInput += `\n# Run ${method} calculation\n${ccCommand} ${method.toLowerCase()}\n`;
-            }
-
-            document.getElementById('elemco-input').value = elemcoInput;
-        }
-
         // Remove previous event listeners and add new ones
         function initializeElemCoListeners() {
             const method = document.getElementById('elemco-method');
-            const basis = document.getElementById('elemco-basis');
+            const aoBasis = document.getElementById('elemco-basis');
+            const jkfitBasis = document.getElementById('elemco-jkfit');
+            const mpfitBasis = document.getElementById('elemco-mpfit');
             const charge = document.getElementById('elemco-charge');
             const multiplicity = document.getElementById('elemco-multiplicity');
 
             // Remove old listeners if they exist
             const oldListener = function() {};
             method?.removeEventListener('change', oldListener);
-            basis?.removeEventListener('change', oldListener);
+            aoBasis?.removeEventListener('change', oldListener);
+            jkfitBasis?.removeEventListener('change', oldListener);
+            mpfitBasis?.removeEventListener('change', oldListener);
             charge?.removeEventListener('input', oldListener);
             multiplicity?.removeEventListener('input', oldListener);
 
             // Add new listeners
             method?.addEventListener('change', updateElemCoInput);
-            basis?.addEventListener('change', updateElemCoInput);
+            aoBasis?.addEventListener('change', updateElemCoInput);
+            jkfitBasis?.addEventListener('change', updateElemCoInput);
+            mpfitBasis?.addEventListener('change', updateElemCoInput);
             charge?.addEventListener('input', updateElemCoInput);
             multiplicity?.addEventListener('input', updateElemCoInput);
         }
-
-        // Call initialization when showing panel
-        function showElemCoPanel() {
-            document.getElementById('elemcoPanel').style.display = 'block';
-            initializeElemCoListeners();
-            updateElemCoInput();
-        }
-
-        // Initialize when document is ready
-        document.addEventListener('DOMContentLoaded', initializeElemCoListeners);
 
         // Function to update method options based on DF toggle
         function updateMethodOptions() {
@@ -1564,51 +1516,6 @@ basis = "${basis}"
 
             // Update the input text
             updateElemCoInput();
-        }
-
-        // Update the updateElemCoInput function to handle DF
-        function updateElemCoInput() {
-            const dfEnabled = document.getElementById('elemco-df').checked;
-            const method = document.getElementById('elemco-method').value;
-            const basis = document.getElementById('elemco-basis').value;
-            const charge = parseInt(document.getElementById('elemco-charge').value) || 0;
-            const multiplicity = parseInt(document.getElementById('elemco-multiplicity').value) || 0;
-            
-            // Get current molecular structure from JSmol
-            const xyzData = Jmol.evaluateVar(jmolApplet0, 'write("xyz")');
-            if (!xyzData) {
-                document.getElementById('elemco-input').value = '# Please load a molecule first';
-                return;
-            }
-
-            // Format ElemCo.jl input with complete XYZ specification
-            let elemcoInput = `using ElemCo
-
-# Molecule specification
-geometry = """
-${xyzData.trim()}
-"""
-
-# Set basis set
-basis = "${basis}"
-
-`;
-
-            // Add charge and multiplicity settings only if they are non-zero
-            if (charge !== 0 || multiplicity !== 0) {
-                elemcoInput += `# Set charge and multiplicity\n@set wf charge=${charge} ms2=${multiplicity}\n\n`;
-            }
-
-            // Add calculation commands
-            elemcoInput += `# Run HF calculation first\n${dfEnabled ? '@dfhf' : '@dfhf'}\n`;
-
-            // Add coupled cluster calculation if method is not HF
-            if (method !== 'HF') {
-                const ccCommand = dfEnabled ? '@dfcc' : '@cc';
-                elemcoInput += `\n# Run ${method} calculation\n${ccCommand} ${method.toLowerCase()}\n`;
-            }
-
-            document.getElementById('elemco-input').value = elemcoInput;
         }
     </script>
 </head>
@@ -1717,12 +1624,32 @@ basis = "${basis}"
             </div>
         </div>
         <div class="elemco-input-group">
-            <label for="elemco-basis">Basis Set:</label>
+            <label for="elemco-basis">AO Basis Set:</label>
             <select id="elemco-basis">
                 <option value="cc-pVDZ" selected>cc-pVDZ</option>
                 <option value="cc-pVTZ">cc-pVTZ</option>
                 <option value="aug-cc-pVDZ">aug-cc-pVDZ</option>
                 <option value="aug-cc-pVTZ">aug-cc-pVTZ</option>
+            </select>
+        </div>
+        <div class="elemco-input-group">
+            <label for="elemco-jkfit">JKfit Basis:</label>
+            <select id="elemco-jkfit">
+                <option value="auto" selected>Auto (Based on AO)</option>
+                <option value="cc-pVDZ-jkfit">cc-pVDZ-jkfit</option>
+                <option value="cc-pVTZ-jkfit">cc-pVTZ-jkfit</option>
+                <option value="aug-cc-pVDZ-jkfit">aug-cc-pVDZ-jkfit</option>
+                <option value="aug-cc-pVTZ-jkfit">aug-cc-pVTZ-jkfit</option>
+            </select>
+        </div>
+        <div class="elemco-input-group">
+            <label for="elemco-mpfit">MPfit Basis:</label>
+            <select id="elemco-mpfit">
+                <option value="auto" selected>Auto (Based on AO)</option>
+                <option value="cc-pVDZ-mpfit">cc-pVDZ-mpfit</option>
+                <option value="cc-pVTZ-mpfit">cc-pVTZ-mpfit</option>
+                <option value="aug-cc-pVDZ-mpfit">aug-cc-pVDZ-mpfit</option>
+                <option value="aug-cc-pVTZ-mpfit">aug-cc-pVTZ-mpfit</option>
             </select>
         </div>
         <div class="elemco-input-group">
