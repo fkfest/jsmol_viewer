@@ -296,12 +296,32 @@
             margin-right: 10px;
         }
         .elemco-input-group {
-            margin-bottom: 15px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .elemco-input-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
+        .elemco-input-group.vertical {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+        }
+        .elemco-input-group.vertical > * {
+            width: 100%;
+        }
+        .elemco-input-group.vertical label {
+            min-width: unset;
+            margin-bottom: 4px;
+        }
+        .elemco-input-group.vertical textarea {
+            height: 150px;
+            min-height: 120px;
+            resize: vertical;
+        }
+        .elemco-input-group.vertical .preview-note {
+            margin-top: 8px;
+            color: #666;
+            font-size: 0.9em;
         }
         .elemco-input-group input,
         .elemco-input-group select,
@@ -589,8 +609,8 @@
         .method-df-line {
             display: flex;
             align-items: center;
-            gap: 10px;
-            width: 100%;
+            gap: 8px;
+            flex: 1;
         }
         
         .method-df-line select {
@@ -600,9 +620,10 @@
         .df-toggle-label {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
+            margin: 0;
+            min-width: unset !important;
             white-space: nowrap;
-            margin-bottom: 0;
         }
         
         .df-toggle-label input[type="checkbox"] {
@@ -611,6 +632,117 @@
         }
         
         /* ...existing styles... */
+        .elemco-input-group.vertical {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 4px;
+        }
+        
+        .elemco-input-group.vertical label {
+            min-width: unset;
+            margin-bottom: 4px;
+        }
+
+        .elemco-input-group.vertical textarea {
+            height: 150px;
+            min-height: 120px;
+            resize: vertical;
+            margin: 0;
+        }
+
+        .elemco-input-group.vertical a {
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        #elemco-input {
+            font-family: monospace;
+            width: 100%;
+            height: 150px;
+            min-height: 120px;
+            resize: vertical;
+            margin: 0;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .preview-note {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .elemco-input-group.vertical .doc-link-container {
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .elemco-input-group.vertical .doc-link-container a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+
+        .elemco-input-group.vertical .doc-link-container a:hover {
+            text-decoration: underline;
+        }
+
+        .elemco-input-group.vertical label {
+            min-width: unset;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .elemco-input-group.vertical textarea {
+            height: 150px;
+            min-height: 120px;
+            resize: vertical;
+            padding: 8px;
+            font-family: monospace;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 0;
+        }
+
+        .elemco-input-group.vertical .preview-note {
+            margin-top: 8px;
+            color: #666;
+            font-size: 0.9em;
+            padding: 4px;
+            background-color: #f8f8f8;
+            border-radius: 4px;
+        }
+
+        .elemco-input-group input[type="number"] {
+            width: 45px;  /* Make number inputs exactly 3 characters wide */
+            padding: 4px;
+            text-align: center;
+            appearance: textfield;  /* Standard property */
+            -moz-appearance: textfield;  /* Firefox-specific */
+        }
+        
+        /* Remove spinner arrows in Chrome/Safari/Edge */
+        .elemco-input-group input[type="number"]::-webkit-outer-spin-button,
+        .elemco-input-group input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            appearance: none;
+            margin: 0;
+        }
+
+        .charge-multiplicity-group {
+            display: flex;
+            justify-content: flex-start;
+            gap: 24px;  /* Increased gap between charge and multiplicity */
+            margin: 12px 0;
+        }
+
+        .charge-multiplicity-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;  /* Prevent label wrapping */
+        }
     </style>
     <script type="text/javascript">
         var jmolApplet0;
@@ -1540,7 +1672,8 @@
         
             // Format ElemCo.jl input with complete XYZ specification
             let elemcoInput = `using ElemCo
-        
+
+function main()        
 # Molecule specification
 geometry = """
 ${xyzData.trim()}
@@ -1580,6 +1713,7 @@ ${xyzData.trim()}
                 const ccCommand = dfEnabled ? '@dfcc' : '@cc';
                 elemcoInput += `\n# Run ${method} calculation\n${ccCommand} ${method.toLowerCase()}\n`;
             }
+            elemcoInput += `\nend\nmain()\n`;
         
             // Set the input text
             const inputArea = document.getElementById('elemco-input');
@@ -1752,15 +1886,17 @@ ${xyzData.trim()}
                 <option value="aug-cc-pVQZ-mpfit">aug-cc-pVQZ-mpfit</option>
             </select>
         </div>
-        <div class="elemco-input-group">
-            <label for="elemco-charge">Charge:</label>
-            <input type="number" id="elemco-charge" value="0" min="-99" max="99">
+        <div class="charge-multiplicity-group">
+            <div class="charge-multiplicity-item">
+                <label for="elemco-charge">Charge:</label>
+                <input type="number" id="elemco-charge" value="0" min="-99" max="99">
+            </div>
+            <div class="charge-multiplicity-item">
+                <label for="elemco-multiplicity">Multiplicity:</label>
+                <input type="number" id="elemco-multiplicity" value="0" min="0" max="99">
+            </div>
         </div>
-        <div class="elemco-input-group">
-            <label for="elemco-multiplicity">Multiplicity:</label>
-            <input type="number" id="elemco-multiplicity" value="0" min="0" max="99">
-        </div>
-        <div class="elemco-input-group">
+        <div class="elemco-input-group vertical">
             <div style="margin-bottom: 8px;">
                 <a href="https://elem.co.il" target="_blank" rel="noopener noreferrer">Documentation →</a>
             </div>
