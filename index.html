@@ -683,6 +683,7 @@
             $("#viewer-inner").html(Jmol.getAppletHtml("jmolApplet0", Info));
             initDraggable();
             initResizeObserver();
+            setTimeout(initElemCoPanel, 500); // Add initialization here too
         });
 
         // Add toggle spin function
@@ -1437,9 +1438,13 @@
         };
 
         function showElemCoPanel() {
-            document.getElementById('elemcoPanel').style.display = 'block';
-            initializeElemCoListeners();
-            updateElemCoInput();
+            const panel = document.getElementById('elemcoPanel');
+            if (panel) {
+                panel.style.display = 'block';
+                // Reinitialize panel elements to ensure they're set up properly
+                initElemCoPanel();
+                initializeElemCoListeners();
+            }
         }
 
         function hideElemCoPanel() {
@@ -1516,6 +1521,98 @@
 
             // Update the input text
             updateElemCoInput();
+        }
+        function updateElemCoInput() {
+            const dfEnabled = document.getElementById('elemco-df').checked;
+            const method = document.getElementById('elemco-method').value;
+            const aoBasis = document.getElementById('elemco-basis').value;
+            const jkfitBasis = document.getElementById('elemco-jkfit').value;
+            const mpfitBasis = document.getElementById('elemco-mpfit').value;
+            const charge = parseInt(document.getElementById('elemco-charge').value) || 0;
+            const multiplicity = parseInt(document.getElementById('elemco-multiplicity').value) || 0;
+
+            // Get current molecular structure from JSmol
+            const xyzData = Jmol.evaluateVar(jmolApplet0, 'write("xyz")');
+            if (!xyzData) {
+                document.getElementById('elemco-input').value = '# Please load a molecule first';
+                return;
+            }
+        
+            // Format ElemCo.jl input with complete XYZ specification
+            let elemcoInput = `using ElemCo
+        
+# Molecule specification
+geometry = """
+${xyzData.trim()}
+"""
+        
+# Set basis set`;
+        
+            // Handle basis set configuration based on selected options
+            if (jkfitBasis === 'auto' && mpfitBasis === 'auto') {
+                // Use simple basis set specification if no auxiliary basis sets are selected
+                elemcoInput += `\nbasis = "${aoBasis}"\n`;
+            } else {
+                // Build the basis dictionary with selected auxiliary basis sets
+                elemcoInput += `\nbasis = Dict(\n    "ao" => "${aoBasis}"`;
+
+                if (jkfitBasis !== 'auto') {
+                    elemcoInput += `,\n    "jkfit" => "${jkfitBasis}"`;
+                }
+
+                if (mpfitBasis !== 'auto') {
+                    elemcoInput += `,\n    "mpfit" => "${mpfitBasis}"`;
+                }
+
+                elemcoInput += "\n)\n";
+            }
+        
+            // Add charge and multiplicity settings only if they are non-zero
+            if (charge !== 0 || multiplicity !== 0) {
+                elemcoInput += `\n# Set charge and multiplicity\n@set wf charge=${charge} ms2=${multiplicity}\n`;
+            }
+        
+            // Add calculation commands
+            elemcoInput += `\n# Run HF calculation first\n${dfEnabled ? '@dfhf' : '@dfhf'}\n`;
+        
+            // Add coupled cluster calculation if method is not HF
+            if (method !== 'HF') {
+                const ccCommand = dfEnabled ? '@dfcc' : '@cc';
+                elemcoInput += `\n# Run ${method} calculation\n${ccCommand} ${method.toLowerCase()}\n`;
+            }
+        
+            // Set the input text
+            const inputArea = document.getElementById('elemco-input');
+            if (inputArea) {
+                inputArea.value = elemcoInput;
+            }
+        }
+
+
+
+        // Initialize ElemCo panel elements
+        function initElemCoPanel() {
+            // Add the DF toggle
+            const dfLabel = document.querySelector('.df-toggle-label');
+            if (dfLabel) {
+                dfLabel.innerHTML = `
+                    <input type="checkbox" id="elemco-df" onchange="updateMethodOptions()">
+                    <span>Use DF</span>
+                `;
+            }
+
+            // Initialize method options
+            updateMethodOptions();
+
+            // Update input text
+            updateElemCoInput();
+        }
+
+        // Add initialization to both window.onload and document.ready
+        if (typeof window !== 'undefined') {
+            window.addEventListener('load', function() {
+                setTimeout(initElemCoPanel, 500); // Delay to ensure DOM is ready
+            });
         }
     </script>
 </head>
@@ -1638,8 +1735,9 @@
                 <option value="auto" selected>Auto (Based on AO)</option>
                 <option value="cc-pVDZ-jkfit">cc-pVDZ-jkfit</option>
                 <option value="cc-pVTZ-jkfit">cc-pVTZ-jkfit</option>
-                <option value="aug-cc-pVDZ-jkfit">aug-cc-pVDZ-jkfit</option>
-                <option value="aug-cc-pVTZ-jkfit">aug-cc-pVTZ-jkfit</option>
+                <option value="cc-pVQZ-jkfit">cc-pVQZ-jkfit</option>
+                <option value="cc-pV5Z-jkfit">cc-pV5Z-jkfit</option>
+                <option value="def2-universal-jkfit">def2-universal-jkfit</option>
             </select>
         </div>
         <div class="elemco-input-group">
@@ -1648,8 +1746,10 @@
                 <option value="auto" selected>Auto (Based on AO)</option>
                 <option value="cc-pVDZ-mpfit">cc-pVDZ-mpfit</option>
                 <option value="cc-pVTZ-mpfit">cc-pVTZ-mpfit</option>
+                <option value="cc-pVQZ-mpfit">cc-pVQZ-mpfit</option>
                 <option value="aug-cc-pVDZ-mpfit">aug-cc-pVDZ-mpfit</option>
                 <option value="aug-cc-pVTZ-mpfit">aug-cc-pVTZ-mpfit</option>
+                <option value="aug-cc-pVQZ-mpfit">aug-cc-pVQZ-mpfit</option>
             </select>
         </div>
         <div class="elemco-input-group">
