@@ -1754,13 +1754,16 @@ ${xyzData.trim()}
         </div>
         <div class="elemco-input-group">
             <label for="elemco-charge">Charge:</label>
-            <input type="number" id="elemco-charge" value="0">
+            <input type="number" id="elemco-charge" value="0" min="-99" max="99">
         </div>
         <div class="elemco-input-group">
             <label for="elemco-multiplicity">Multiplicity:</label>
-            <input type="number" id="elemco-multiplicity" value="0" min="0">
+            <input type="number" id="elemco-multiplicity" value="0" min="0" max="99">
         </div>
         <div class="elemco-input-group">
+            <div style="margin-bottom: 8px;">
+                <a href="https://elem.co.il" target="_blank" rel="noopener noreferrer">Documentation →</a>
+            </div>
             <label for="elemco-input">Input Editor:</label>
             <textarea id="elemco-input"></textarea>
             <div class="preview-note">Note: Changes to parameters will update this editor. You can also edit directly.</div>
