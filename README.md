@@ -9,6 +9,7 @@ Download: [Latest Release Executables](https://github.com/fkfest/jlmol/releases/
 ## Features
 
 ### Visualization
+
 - Powerful JSmol molecular visualization capabilities:
   - 3D structure visualization with multiple display styles (ball&stick, wireframe, spacefill)
   - Support for multiple file formats (XYZ, PDB, MOL, CIF, MOLDEN)
@@ -17,6 +18,7 @@ Download: [Latest Release Executables](https://github.com/fkfest/jlmol/releases/
   - Drag and drop file loading
 
 ### Structure Editing
+
 - Integrated JSME 2D structure editor:
   - Toggle between 3D (JSmol) and 2D (JSME) views
   - Draw and edit molecular structures in intuitive 2D interface
@@ -40,7 +42,18 @@ Download: [Latest Release Executables](https://github.com/fkfest/jlmol/releases/
   - Save edited structures
   - Draggable and resizable editor window
 
+### ElemCo.jl Input Generation
+
+- Built-in support for generating ElemCo.jl input files
+- Direct conversion of molecular structures to ElemCo.jl input format
+- Support for common quantum chemistry methods (HF, MP2, CCSD, etc.)
+- Basis set selection
+- Density fitting toggle for supported methods
+- Direct text editing of generated input
+- Copy input directly to clipboard for use with ElemCo.jl
+
 ### Advanced Features
+
 - Orbital visualization:
   - Advanced orbital visualization with HOMO/LUMO identification
   - Easy orbital navigation with arrow keys
@@ -60,6 +73,7 @@ Download: [Latest Release Executables](https://github.com/fkfest/jlmol/releases/
 ### Pre-built Executables
 
 Executables for Windows and Linux are automatically generated for each release on GitHub. You can:
+
 1. Download the latest version for your platform from the [releases page](https://github.com/fkfest/jsmol_viewer/releases/latest)
 2. Run the installer for your platform
    - Windows: `.exe` installer
@@ -69,10 +83,13 @@ Executables for Windows and Linux are automatically generated for each release o
 
 1. Clone the repository
 2. Install dependencies:
+
 ```bash
 npm install
 ```
-3. Run the application:
+
+1. Run the application:
+
 ```bash
 npm start
 ```
@@ -80,6 +97,7 @@ npm start
 ### Building
 
 To build the application:
+
 ```bash
 npm run build
 ```
@@ -89,6 +107,7 @@ This will create installers in the `dist` directory.
 ## Development
 
 This application is built with:
+
 - Electron
 - JSmol (JavaScript-based molecular viewer)
 - Node.js
@@ -110,12 +129,14 @@ This project is licensed under LGPL-2.1.
 ## Documentation
 
 For more information about the underlying JSmol viewer:
+
 - [Jmol Documentation](http://jmol.sourceforge.net)
 - [JSmol Documentation](http://jsmol.sourceforge.net)
 
 ## Using the XYZ Editor
 
 The application includes a draggable XYZ structure editor that allows you to:
+
 - View and edit molecular coordinates in XYZ format
 - Switch between selection and edit modes
 - Select individual atoms in the structure
@@ -126,6 +147,7 @@ The application includes a draggable XYZ structure editor that allows you to:
 - Resize the editor window by dragging its bottom-right corner
 
 To use the editor:
+
 1. Load a molecular structure
 2. Click the "Edit XYZ" button
 3. Use Selection mode to highlight specific atoms
@@ -137,6 +159,7 @@ To use the editor:
 ## Orbital Visualization
 
 The orbital viewer provides enhanced visualization of molecular orbitals:
+
 - Interactive orbital list showing energy levels
 - Color-coded HOMO and LUMO identifiers
 - Keyboard navigation (↑/↓ arrow keys)
@@ -145,6 +168,7 @@ The orbital viewer provides enhanced visualization of molecular orbitals:
 - Draggable and resizable control panel
 
 To visualize orbitals:
+
 1. Load a structure with orbital data (e.g., MOLDEN format)
 2. Click "Show/Hide Orbitals" button
 3. Use arrow keys or buttons to navigate orbitals
@@ -154,6 +178,7 @@ To visualize orbitals:
 ## 2D Structure Editor (JSME)
 
 The application includes JSME (JavaScript Molecular Editor), providing an integrated 2D structure editing experience:
+
 - Toggle between 3D (JSmol) and 2D (JSME) views with a single click
 - Draw and edit molecular structures in a familiar 2D interface
 - Automatic conversion between 2D and 3D structures
@@ -166,6 +191,7 @@ The application includes JSME (JavaScript Molecular Editor), providing an integr
   - Clean up structure layout
 
 To use the 2D editor:
+
 1. Click the "2D Editor" button to switch to JSME
 2. Draw or edit your structure using the JSME tools
 3. Changes are automatically synchronized with the 3D view
@@ -173,6 +199,7 @@ To use the 2D editor:
 5. Use the "Ball & Stick" or other display styles to view your structure in 3D
 
 The 2D editor is particularly useful for:
+
 - Creating new molecular structures from scratch
 - Quick structural modifications
 - Drawing complex molecular scaffolds
@@ -189,6 +216,7 @@ The application includes JSmol's built-in ModelKit for interactive 3D structure 
   - Helps in quick structure refinement and conformation exploration
 
 Advanced ModelKit features (activated via right-click menu):
+
 - Add/Delete atoms
   - Right-click to access the atom menu
   - Choose from common elements (H, C, N, O, etc.)
@@ -204,6 +232,7 @@ Advanced ModelKit features (activated via right-click menu):
   - Angle adjustment to standard values
 
 To use ModelKit:
+
 1. Click the "3D" button to activate
 2. Left-click and drag atoms to move them (default mode)
 3. Right-click for additional editing options
@@ -217,6 +246,7 @@ This feature complements the XYZ editor and 2D JSME editor, providing a complete
 The application includes built-in support for generating ElemCo.jl input files for quantum chemistry calculations:
 
 ### Features
+
 - Direct conversion of molecular structures to ElemCo.jl input format
 - Support for common quantum chemistry methods:
   - Hartree-Fock (HF)
@@ -228,6 +258,7 @@ The application includes built-in support for generating ElemCo.jl input files f
   - SVD-Distinguishable Cluster methods (SVD-DCSD)
 
 ### Available Options
+
 - Basis Sets:
   - Correlation-consistent basis sets (cc-pVDZ, cc-pVTZ)
   - Augmented correlation-consistent basis sets (aug-cc-pVDZ, aug-cc-pVTZ)
@@ -239,6 +270,7 @@ The application includes built-in support for generating ElemCo.jl input files f
 - Direct text editing of generated input
 
 ### Using ElemCo.jl Integration
+
 1. Load or create a molecular structure in the viewer
 2. Click the ElemCo.jl logo button in the control panel
 3. Select desired calculation options:
