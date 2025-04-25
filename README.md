@@ -216,3 +216,43 @@ To use ModelKit:
 5. Click "3D" again to exit ModelKit mode
 
 This feature complements the XYZ editor and 2D JSME editor, providing a complete set of molecular editing tools.
+
+## ElemCo.jl Integration
+
+The application includes built-in support for generating ElemCo.jl input files for quantum chemistry calculations:
+
+### Features
+- Direct conversion of molecular structures to ElemCo.jl input format
+- Support for common quantum chemistry methods:
+  - Hartree-Fock (HF)
+  - Second-order Møller-Plesset perturbation theory (MP2)
+  - Distinguishable Cluster Singles and Doubles (DCSD)
+  - Coupled Cluster with Singles, Doubles, and perturbative Triples (CCSD(T))
+  - Coupled Cluster with Singles, Doubles, and Triples (CCSDT)
+  - Distinguishable Cluster CCSDT (DC-CCSDT)
+  - SVD-Distinguishable Cluster methods (SVD-DCSD)
+
+### Available Options
+- Basis Sets:
+  - Correlation-consistent basis sets (cc-pVDZ, cc-pVTZ)
+  - Augmented correlation-consistent basis sets (aug-cc-pVDZ, aug-cc-pVTZ)
+  - Automatic or manual selection of auxiliary basis sets for:
+    - JK-fitting (cc-pVXZ-jkfit, def2-universal-jkfit)
+    - MP2-fitting (cc-pVXZ-mpfit, aug-cc-pVXZ-mpfit)
+- Density Fitting (DF) toggle for supported methods
+- Charge and multiplicity specification
+- Direct text editing of generated input
+
+### Using ElemCo.jl Integration
+1. Load or create a molecular structure in the viewer
+2. Click the ElemCo.jl logo button in the control panel
+3. Select desired calculation options:
+   - Choose quantum chemistry method
+   - Select basis sets
+   - Toggle density fitting if desired
+   - Set charge and multiplicity if needed
+4. Review the generated input in the text editor
+5. Copy the input directly to clipboard
+6. Use the input with ElemCo.jl for calculations
+
+The integration provides a convenient way to prepare quantum chemistry calculations while visualizing the molecular structure. For more information about ElemCo.jl and its capabilities, visit [elem.co.il](https://elem.co.il).
