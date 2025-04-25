@@ -2,9 +2,9 @@
 
 A desktop application for molecular visualization built with Electron and JSmol. This application provides a native desktop experience for the powerful JSmol molecular viewer.
 
-Try it online: [Browser Version](https://fkfest.github.io/jsmol_viewer)
+Try it online: [Browser Version](https://fkfest.github.io/jlmol)
 
-Download: [Latest Release Executables](https://github.com/fkfest/jsmol_viewer/releases/latest)
+Download: [Latest Release Executables](https://github.com/fkfest/jlmol/releases/latest)
 
 ## Features
 
@@ -92,11 +92,6 @@ This application is built with:
 - Electron
 - JSmol (JavaScript-based molecular viewer)
 - Node.js
-
-Project structure:
-- `src/` - Electron application source code
-- `jsmol/` - JSmol viewer files
-- `build/` - Build assets including application icons
 
 ## Credits
 
