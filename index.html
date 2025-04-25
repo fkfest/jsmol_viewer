@@ -892,7 +892,7 @@
                 var reader = new FileReader();
                 reader.onload = function(e) {
                     try {
-                        Jmol.script(jmolApplet0, 'load inline "' + e.target.result + '"');
+                        Jmol.script(jmolApplet0, 'load inline "' + e.target.result + '" filter "NOSORT"');
                         document.getElementById('status').innerHTML = 'File loaded successfully';
                     } catch (err) {
                         document.getElementById('status').innerHTML = 'Error loading file: ' + err.message;

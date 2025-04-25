@@ -82,7 +82,7 @@ function createWindow() {
                                     const content = \`${fileContent.replace(/\\/g, '\\\\').replace(/`/g, '\\`')}\`;
                                     Jmol.script(jmolApplet0, 'set echo top left; echo "Loading molecule...";');
                                     setTimeout(() => {
-                                        Jmol.script(jmolApplet0, 'load inline "' + content + '";');
+                                        Jmol.script(jmolApplet0, 'load inline "' + content + '" filter "NOSORT";');
                                         Jmol.script(jmolApplet0, 'set echo top left; echo "";');
                                     }, 100);
                                 } catch (err) {
