@@ -5,11 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2025-04-25
+
+### Fixed
+
+- Switched off the orbital sort feature in the JSmol viewer
+
 ## [1.0.0] - 2025-04-25
 
 First stable release with all core features implemented:
 
 ### Features
+
 - Advanced molecular visualization with JSmol integration
 - Support for multiple file formats (XYZ, PDB, MOL, CIF, MOLDEN)
 - Interactive 2D/3D structure editing:

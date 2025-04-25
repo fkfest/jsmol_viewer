@@ -2,7 +2,7 @@
 (function checkVersion() {
     const versionElement = document.getElementById('version-number');
     if (versionElement) {
-        versionElement.textContent = window.appVersion || '1.0.0';
+        versionElement.textContent = window.appVersion || '1.0.1';
     } else {
         // If element isn't ready yet, retry in 100ms
         setTimeout(checkVersion, 100);
@@ -58,7 +58,7 @@ window.addEventListener('load', () => {
     // Display version number
     const versionElement = document.getElementById('version-number');
     if (versionElement) {
-        versionElement.textContent = window.appVersion || '1.0.0';
+        versionElement.textContent = window.appVersion || '1.0.1';
     }
 
     // Ensure JSME is properly initialized in Electron context
