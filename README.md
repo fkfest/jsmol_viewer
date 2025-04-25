@@ -1,4 +1,4 @@
-# JSmol Electron Viewer
+# jlmol
 
 A desktop application for molecular visualization built with Electron and JSmol. This application provides a native desktop experience for the powerful JSmol molecular viewer.
 

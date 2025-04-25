@@ -1,7 +1,7 @@
 {
-  "name": "jsmol-electron",
-  "version": "0.1.4",
-  "description": "JSmol Molecular Viewer Desktop App",
+  "name": "jlmol",
+  "version": "1.0.0",
+  "description": "jlmol - A Molecular Viewer Desktop App",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -11,8 +11,8 @@
     "build:linux": "electron-builder --linux"
   },
   "build": {
-    "appId": "com.jsmol.viewer",
-    "productName": "JSmol Viewer",
+    "appId": "com.jlmol.viewer",
+    "productName": "jlmol",
     "asar": true,
     "asarUnpack": [
       "jsmol/**/*"

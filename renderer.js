@@ -1,3 +1,14 @@
+// Check version immediately when script loads
+(function checkVersion() {
+    const versionElement = document.getElementById('version-number');
+    if (versionElement) {
+        versionElement.textContent = window.appVersion || '1.0.0';
+    } else {
+        // If element isn't ready yet, retry in 100ms
+        setTimeout(checkVersion, 100);
+    }
+})();
+
 function showElemCoPanel() {
     document.getElementById('elemcoPanel').style.display = 'block';
     updateElemCoInput(); // Remove initializeElemCoListeners call since we handle it in DOMContentLoaded
@@ -44,6 +55,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Wait for the window to load completely
 window.addEventListener('load', () => {
+    // Display version number
+    const versionElement = document.getElementById('version-number');
+    if (versionElement) {
+        versionElement.textContent = window.appVersion || '1.0.0';
+    }
+
     // Ensure JSME is properly initialized in Electron context
     if (window.jsmeOnLoad) {
         window.jsmeOnLoad();

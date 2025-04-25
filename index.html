@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>JSmol Molecular Viewer</title>
+    <title>jlmol</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script type="text/javascript" src="jsmol/jquery/jquery.min.js"></script>
@@ -742,6 +742,15 @@
             align-items: center;
             gap: 8px;
             white-space: nowrap;  /* Prevent label wrapping */
+        }
+        #version-display {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 16px;
+            padding: 4px 8px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            text-align: center;
         }
     </style>
     <script type="text/javascript">
@@ -1755,6 +1764,7 @@ ${xyzData.trim()}
         <div id="viewer"></div>
         <div id="jsmeContainer"></div>
         <div id="controls">
+            <div id="version-display" style="font-size: 12px; color: #666; margin-bottom: 16px; padding: 4px 8px; background: #f5f5f5; border-radius: 4px; text-align: center;">jlmol v<span id="version-number">1.0.0</span></div>
             <h3>Load Structure</h3>
             <input type="file" id="structureFile" accept=".xyz,.pdb,.mol,.cif,.molden" onChange="handleFileSelect(event)" title="Select a molecular structure file">
             <div class="sample-buttons">

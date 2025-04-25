@@ -1,6 +1,7 @@
 const { app, BrowserWindow } = require('electron')
 const path = require('path')
 const fs = require('fs')
+const { version } = require('./package.json')
 
 // Set up logging
 const logFile = path.join(app.getPath('userData'), 'jsmol.log');
@@ -65,6 +66,9 @@ function createWindow() {
 
     win.webContents.on('did-finish-load', () => {
         log('Window loaded, has file content: ' + !!fileContent);
+        // Pass version information to renderer
+        win.webContents.executeJavaScript(`window.appVersion = "${version}";`);
+        
         if (fileContent) {
             win.webContents.executeJavaScript(`
                 (function loadMolecule() {
